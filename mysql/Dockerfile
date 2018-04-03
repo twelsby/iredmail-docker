@@ -17,9 +17,6 @@ ARG MYSQL_HOST=127.0.0.1
 ENV DEBIAN_FRONTEND noninteractive
 RUN echo "APT::Install-Recommends 0;" >> /etc/apt/apt.conf.d/01-no-recommends \
     && echo "APT::Install-Suggests 0;" >> /etc/apt/apt.conf.d/01-no-recommends \
-    && echo $TIMEZONE > /etc/timezone \
-    && rm /etc/localtime \
-    && ln -s /usr/share/zoneinfo/$TIMEZONE \
     && apt-get -q update \
     && apt-get upgrade -y \
     && apt-get install -y -q \
@@ -76,6 +73,7 @@ RUN sed s/$(hostname_)/$(cat /opt/hostname | xargs echo -n).$(cat /etc/mailname 
 
 ### Final configuration
 RUN . ./config \
+    && sed -i "s/^exit 101$/exit 0/" /usr/sbin/policy-rc.d \
     && sed -i '/^Foreground /c Foreground true' /etc/clamav/clamd.conf \
     && sed -i '/init.d/c pkill -sighup clamd' /etc/logrotate.d/clamav-daemon \
     && sed -i '/^Foreground /c Foreground true' /etc/clamav/freshclam.conf \

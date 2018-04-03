@@ -60,6 +60,20 @@ if [ ! -e /opt/iredmail/.cv ]; then
   sed -i "s/@127.0.0.1:3306/@$MYSQL_HOST:3306/g" /etc/sogo/sogo.conf
   sed -i 's/WOWorkersCount.*$'/WOWorkersCount=$SOGO_WORKERS\;/ /etc/sogo/sogo.conf
 
+  echo Updating timezone
+  echo $TIMEZONE > /etc/timezone
+  rm /etc/localtime
+  ln -s /usr/share/zoneinfo/$TIMEZONE
+  dpkg-reconfigure tzdata
+
+  echo Updating domain
+  sed s/$(hostname_)/$(cat /opt/hostname | xargs echo -n).$(cat /etc/mailname | xargs echo -n)/ /etc/hosts > /tmp/hosts_
+  cat /tmp/hosts_ > /etc/hosts
+  rm /tmp/hosts_
+  echo $HOSTNAME > /etc/hostname
+  echo $DOMAIN > /etc/mailname
+  echo $HOSTNAME > /opt/hostname
+
 fi
 
 exit 0
