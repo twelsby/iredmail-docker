@@ -1,13 +1,16 @@
 #!/bin/sh
 
 ### Wait until postfix is started
-while ! nc -z localhost 25; do   
+while ! nc -z localhost 25; do
   sleep 1
 done
 
+if [ ! -z ${DOMAIN} ]; then
+    sed -i "/.*auth_default_realm[ \t]=.*/s/=.*/= ${DOMAIN}/g" /etc/dovecot/dovecot.conf
+fi
 
-if [ ! -z ${DOMAIN} ]; then 
-    sed -i "s/DOMAIN/${DOMAIN}/g" /etc/dovecot/dovecot.conf
+if [ ! -z ${MYSQL_HOST} ]; then
+    sed -i "s/host[ \t]*=[a-zA-Z0-9.-]\+[ \t]port=3306/host=${MYSQL_HOST} port=3306/g" /etc/dovecot/dovecot-share-folder.conf /etc/dovecot/dovecot-mysql.conf /etc/dovecot/dovecot-used-quota.conf
 fi
 
 # Update password

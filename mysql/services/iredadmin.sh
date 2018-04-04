@@ -1,8 +1,15 @@
 #!/bin/sh
 # Wait until Dovecot is started
-while ! nc -z localhost 993; do   
+while ! nc -z localhost 993; do
   sleep 1
 done
+
+if [ ! -z ${MYSQL_HOST} ]; then
+    sed -i "/^iredadmin_db_host[ \t]*=.*/s/=.*/= \"${MYSQL_HOST}\"/g" /opt/www/iredadmin/settings.py
+    sed -i "/^vmail_db_host[ \t]*=.*/s/=.*/= \"$MYSQL_HOST\"/g" /opt/www/iredadmin/settings.py
+    sed -i "/^amavisd_db_host[ \t]*=.*/s/=.*/= \"$MYSQL_HOST\"/g" /opt/www/iredadmin/settings.py
+    sed -i "/^iredapd_db_host[ \t]*=.*/s/=.*/= \"$MYSQL_HOST\"/g" /opt/www/iredadmin/settings.py
+fi
 
 # Update MySQL password
 . /opt/iredmail/.cv

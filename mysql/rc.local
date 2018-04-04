@@ -22,58 +22,21 @@ if [ ! -e /opt/iredmail/.cv ]; then
   echo SOGO_SIEVE_MASTER_PASSWD="$(openssl rand -hex 32)" >> /opt/iredmail/.cv
   echo IREDAPD_DB_PASSWD="$(openssl rand -hex 32)" >> /opt/iredmail/.cv
 
-  echo Patching /etc/amavis/conf.d/50-user
-  sed -i "s/host=127.0.0.1;port=3306/host=$MYSQL_HOST;port=3306/g" /etc/amavis/conf.d/50-user
+#  echo Updating domain
+#  sed s/$(hostname)/${HOSTNAME}.${DOMAIN}/g /etc/hosts > /tmp/hosts_
+#  cat /tmp/hosts_ > /etc/hosts
+#  rm /tmp/hosts_
+#  echo $HOSTNAME > /etc/hostname
+#  echo $DOMAIN > /etc/mailname
 
-  echo Patching /etc/dovecot/dovecot-share-folder.conf
-  sed -i "s/host=127.0.0.1 port=3306/host=$MYSQL_HOST port=3306/g" /etc/dovecot/dovecot-share-folder.conf
+fi
 
-  echo Patching /etc/dovecot/dovecot-mysql.conf
-  sed -i "s/host=127.0.0.1 port=3306/host=$MYSQL_HOST port=3306/g" /etc/dovecot/dovecot-mysql.conf
-
-  echo Patching /etc/dovecot/dovecot-used-quota.conf
-  sed -i "s/host=127.0.0.1 port=3306/host=$MYSQL_HOST port=3306/g" /etc/dovecot/dovecot-used-quota.conf
-
-  echo Patching /opt/www/iredadmin/settings.py
-  sed -i "s/iredadmin_db_host = \"127.0.0.1\"/iredadmin_db_host = \"$MYSQL_HOST\"/g" /opt/www/iredadmin/settings.py
-  sed -i "s/vmail_db_host = \"127.0.0.1\"/vmail_db_host = \"$MYSQL_HOST\"/g" /opt/www/iredadmin/settings.py
-  sed -i "s/amavisd_db_host = \"127.0.0.1\"/amavisd_db_host = \"$MYSQL_HOST\"/g" /opt/www/iredadmin/settings.py
-  sed -i "s/iredapd_db_host = \"127.0.0.1\"/iredapd_db_host = \"$MYSQL_HOST\"/g" /opt/www/iredadmin/settings.py
-
-  echo Patching /opt/iredapd/settings.py
-  sed -i "s/vmail_db_server = \"127.0.0.1\"/vmail_db_server = \"$MYSQL_HOST\"/g" /opt/iredapd/settings.py
-  sed -i "s/amavisd_db_server = \"127.0.0.1\"/amavisd_db_server = \"$MYSQL_HOST\"/g" /opt/iredapd/settings.py
-  sed -i "s/iredapd_db_server = \"127.0.0.1\"/iredapd_db_server = \"$MYSQL_HOST\"/g" /opt/iredapd/settings.py
-
-  for i in /etc/postfix/mysql/*.cf; do
-      echo Patching $i
-      sed -i "s/127.0.0.1/$MYSQL_HOST/g" $i
-  done
-
-  echo Patching /opt/www/roundcubemail/config/config.inc.php
-  sed -i "s/@127.0.0.1:3306/@$MYSQL_HOST:3306/g" /opt/www/roundcubemail/config/config.inc.php
-
-  echo Patching /etc/default/sogo
-  sed -i 's/PREFORK=.*$'/PREFORK=$SOGO_WORKERS/ /etc/default/sogo
-
-  echo Patching /etc/sogo/sogo.conf
-  sed -i "s/@127.0.0.1:3306/@$MYSQL_HOST:3306/g" /etc/sogo/sogo.conf
-  sed -i 's/WOWorkersCount.*$'/WOWorkersCount=$SOGO_WORKERS\;/ /etc/sogo/sogo.conf
-
+if [ ! -z ${TIMEZONE} ]; then
   echo Updating timezone
   echo $TIMEZONE > /etc/timezone
   rm /etc/localtime
   ln -s /usr/share/zoneinfo/$TIMEZONE
   dpkg-reconfigure tzdata
-
-  echo Updating domain
-  sed s/$(hostname_)/$(cat /opt/hostname | xargs echo -n).$(cat /etc/mailname | xargs echo -n)/ /etc/hosts > /tmp/hosts_
-  cat /tmp/hosts_ > /etc/hosts
-  rm /tmp/hosts_
-  echo $HOSTNAME > /etc/hostname
-  echo $DOMAIN > /etc/mailname
-  echo $HOSTNAME > /opt/hostname
-
 fi
 
 exit 0

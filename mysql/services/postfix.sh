@@ -7,42 +7,38 @@ while [ ! -f /var/tmp/mysql.run ]; do
 done
 # MySQL actually runs
 while ! mysqladmin ping -h localhost --silent; do
-  sleep 1; 
+  sleep 1;
 done
 
+if [ ! -z ${HOSTNAME} ]; then
+    sed -i "/^myhostname[ \t]*=.*/s/\=[ \t]*[0-9a-zA-Z-]*\.\?/= ${HOSTNAME}./g" /etc/postfix/main.cf
+    sed -i "/^myorigin[ \t]*=.*/s/\=[ \t]*[0-9a-zA-Z-]*\.\?/= ${HOSTNAME}./g" /etc/postfix/main.cf
+fi
 
 # Service startup
-if [ ! -z ${DOMAIN} ]; then 
-    sed -i "s/DOMAIN/${DOMAIN}/g" /etc/postfix/main.cf /etc/postfix/aliases
+if [ ! -z ${DOMAIN} ]; then
+    sed -i "/^myhostname[ \t]*=.*/s/\.[0-9a-zA-Z.-]*/.${DOMAIN}/g" /etc/postfix/main.cf
+    sed -i "/^mydomain[ \t]*=.*/s/=.*/= ${DOMAIN}/g" /etc/postfix/main.cf
+    sed -i "/^myorigin[ \t]*=.*/s/\.[0-9a-zA-Z.]*/.${DOMAIN}/g" /etc/postfix/main.cf
+    sed -i "/@[0-9a-zA-Z.]/s/\@[0-9a-zA-Z.-]\+/@${DOMAIN}/g" /etc/postfix/aliases
     newaliases
 fi
 
-if [ ! -z ${HOSTNAME} ]; then 
-    sed -i "s/HOSTNAME/${HOSTNAME}/g" /etc/postfix/main.cf
-fi;
-
+if [ ! -z ${MYSQL_HOST} ]; then
+    for i in /etc/postfix/mysql/*.cf; do
+        sed -i "/^hosts[ \t]*=.*/s/=.*$/= ${MYSQL_HOST}/g" $i
+    done
+fi
 
 # Restore data in case of first run
 if [ ! -d /var/vmail/backup ]; then
     echo "*** Creating vmail structure.."
     cd / && tar jxf /root/vmail.tar.bz2
     rm /root/vmail.tar.bz2
-    
-    if [ ! -z ${DOMAIN} ]; then 
-        sed -i "s/DOMAIN/${DOMAIN}/g" /etc/postfix/main.cf /etc/postfix/aliases        
+
+    if [ ! -z ${DOMAIN} ]; then
         mv /var/vmail/vmail1/DOMAIN /var/vmail/vmail1/$DOMAIN
     fi
-    
-    if [ ! -z ${HOSTNAME} ]; then 
-        sed -i "s/HOSTNAME/${HOSTNAME}/g" /etc/postfix/main.cf
-    fi;
-    
-    if [ ! -z ${HOSTNAME} ] && [ ! -z ${DOMAIN} ]; then 
-        echo "127.0.0.1     ${HOSTNAME}.${DOMAIN}" >> /etc/hosts
-    fi
-    
-    # Update of local aliases
-    newaliases
 fi
 
 FILES="localtime services resolv.conf hosts"

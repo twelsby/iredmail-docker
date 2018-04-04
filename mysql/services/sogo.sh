@@ -1,7 +1,7 @@
 #!/bin/sh
 
 # Wait until Dovecot is started
-while ! nc -z localhost 993; do   
+while ! nc -z localhost 993; do
   sleep 1
 done
 
@@ -14,26 +14,31 @@ NAME=sogo
 PIDFILE=/var/run/$NAME/$NAME.pid
 LOGFILE=/var/log/$NAME/$NAME.log
 
-# Overwrite prefork from attribut
+# Overwrite prefork from attribute
 if [ ! -z ${SOGO_WORKERS} ]; then
+    sed -i 's/PREFORK=.*$'/PREFORK=$SOGO_WORKERS/ /etc/default/sogo
+    sed -i 's/WOWorkersCount.*$'/WOWorkersCount=$SOGO_WORKERS\;/ /etc/sogo/sogo.conf
+
     if [ $SOGO_WORKERS -ne $PREFORK ]; then
         PREFORK=$SOGO_WORKERS
-    fi;
-fi;
+    fi
+fi
 
 # Format options
 DAEMON_OPTS="-WOWorkersCount $PREFORK -WOPidFile $PIDFILE -WOLogFile $LOGFILE -WONoDetach YES"
 
-# Manually change timezone based on attribut
-if [ ! -z ${TIMEZONE} ]; then 
+# Manually change timezone based on attribute
+if [ ! -z ${TIMEZONE} ]; then
     DAEMON_OPTS="$DAEMON_OPTS -WSOGoTimeZone $TIMEZONE"
 fi
 
+if [ ! -z ${MYSQL_HOST} ]; then
+    sed -i "s/@[a-zA-Z0-9.-]\+:3306/@$MYSQL_HOST:3306/g" /etc/sogo/sogo.conf
+fi
 
 # Update MySQL password
 . /opt/iredmail/.cv
 sed -i "s/TEMP_SOGO_DB_PASSWD/$SOGO_DB_PASSWD/" /etc/sogo/sogo.conf
 sed -i "s/TEMP_SOGO_SIEVE_MASTER_PASSWD/$SOGO_SIEVE_MASTER_PASSWD/" /etc/sogo/sieve.cred
-
 
 exec /sbin/setuser $NAME /usr/sbin/sogod -- $DAEMON_OPTS

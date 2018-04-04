@@ -1,8 +1,8 @@
 #!/bin/bash
-FQDN=$(cat /opt/hostname | xargs echo -n).$(cat /etc/mailname | xargs echo -n)
+FQDN=$(cat /etc/hostname | xargs echo -n).$(cat /etc/mailname | xargs echo -n)
 case "$*" in
 '-a'|'-A'|'-s')
-  cat /opt/hostname;;
+  cat /etc/hostname;;
 '-d')
   cat /etc/mailname;;
 '-f'|'--fqdn'|'--long'|'-v')

@@ -5,13 +5,6 @@ MAINTAINER Miloš Kozák <milos.kozak@lejmr.com>
 ARG IREDMAIL_VERSION=0.9.7
 ARG ADMINER_VERSION=4.3.1
 
-# Default values changable at startup
-ARG DOMAIN=DOMAIN
-ARG HOSTNAME=HOSTNAME
-ARG TIMEZONE=Europe/Prague
-ARG SOGO_WORKERS=2
-ARG MYSQL_HOST=127.0.0.1
-
 ### Installation
 # Prerequisites
 ENV DEBIAN_FRONTEND noninteractive
@@ -30,30 +23,22 @@ RUN echo "APT::Install-Recommends 0;" >> /etc/apt/apt.conf.d/01-no-recommends \
       netcat \
       memcached \
     && apt-get autoremove -y -q \
-    && apt-get clean -y -q \
-    && echo $DOMAIN > /etc/mailname \
-    && echo $HOSTNAME > /opt/hostname \
-    && mv /bin/uname /bin/uname_ \
-    && mv /bin/hostname /bin/hostname_
-
-COPY ./uname /bin/uname
-COPY ./hostname /bin/hostname
+    && apt-get clean -y -q
 
 # Install of iRedMail from sources
 WORKDIR /opt/iredmail
-
 RUN wget -O - https://bitbucket.org/zhb/iredmail/downloads/iRedMail-"${IREDMAIL_VERSION}".tar.bz2 | \
     tar xvj --strip-components=1
 
 # Generate configuration file
+ENV DOMAIN=DOMAIN
+ENV HOSTNAME=HOSTNAME
 COPY ./config-gen /opt/iredmail/config-gen
 RUN sh ./config-gen $HOSTNAME $DOMAIN > ./config
 
 # Initiate automatic installation process
-RUN sed s/$(hostname_)/$(cat /opt/hostname | xargs echo -n).$(cat /etc/mailname | xargs echo -n)/ /etc/hosts > /tmp/hosts_ \
-    && cat /tmp/hosts_ > /etc/hosts \
-    && rm /tmp/hosts_ \
-    && echo $HOSTNAME > /etc/hostname \
+RUN sed -i 's/^\s\+check_hostname\s*$/#    check_hostname/' /opt/iredmail/conf/core \
+    && sed -i 's/^check_hostname\s*$/#check_hostname/' /opt/iredmail/pkgs/get_all.sh \
     && sleep 5;service mysql start \
     && sed -i 's/1.3.0/1.3.3/' /opt/iredmail/pkgs/MD5.misc /opt/iredmail/conf/roundcube \
     && sed -i 's/9f81625029663c7b19402542356abd5e/71b16babe3beb7639ad7a4595b3ac92a/' /opt/iredmail/pkgs/MD5.misc \
@@ -72,13 +57,12 @@ RUN sed s/$(hostname_)/$(cat /opt/hostname | xargs echo -n).$(cat /etc/mailname 
     && apt-get clean -y -q
 
 ### Final configuration
-RUN . ./config \
-    && sed -i "s/^exit 101$/exit 0/" /usr/sbin/policy-rc.d \
+RUN sed -i "s/^exit 101$/exit 0/" /usr/sbin/policy-rc.d \
     && sed -i '/^Foreground /c Foreground true' /etc/clamav/clamd.conf \
     && sed -i '/init.d/c pkill -sighup clamd' /etc/logrotate.d/clamav-daemon \
     && sed -i '/^Foreground /c Foreground true' /etc/clamav/freshclam.conf \
     && sed -i 's/^bind-address/#bind-address/' /etc/mysql/mysql.conf.d/mysqld.cnf \
-    && sed -i 's/SHOWWARNING\s*=.*/SHOWWARNING=false/g' /etc/tmpreaper.conf \
+    && sed -i 's/SHOWWARNING[ \t]*=.*/SHOWWARNING=false/g' /etc/tmpreaper.conf \
     && install -o amavis -g amavis -m 750 -d /var/lib/amavis/.spamassassin \
     && install -o amavis -g amavis -m 640 -T /usr/share/spamassassin/user_prefs.template /var/lib/amavis/.spamassassin/user_prefs
 
@@ -119,6 +103,11 @@ RUN apt-get purge -y -q dialog apt-utils augeas-tools \
     && apt-get autoremove -y -q \
     && apt-get clean -y -q \
     && rm -rf /var/lib/apt/lists/*
+
+# Default values changable at startup
+ENV TIMEZONE=Europe/Prague
+ENV SOGO_WORKERS=2
+ENV MYSQL_HOST=127.0.0.1
 
 # Open Ports:
 # Apache: 80/tcp, 443/tcp Postfix: 25/tcp, 587/tcp
