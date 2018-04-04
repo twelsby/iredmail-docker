@@ -21,20 +21,14 @@ if [ ! -e /opt/iredmail/.cv ]; then
   echo SOGO_DB_PASSWD="$(openssl rand -hex 32)" >> /opt/iredmail/.cv
   echo SOGO_SIEVE_MASTER_PASSWD="$(openssl rand -hex 32)" >> /opt/iredmail/.cv
   echo IREDAPD_DB_PASSWD="$(openssl rand -hex 32)" >> /opt/iredmail/.cv
-
-#  echo Updating domain
-#  sed s/$(hostname)/${HOSTNAME}.${DOMAIN}/g /etc/hosts > /tmp/hosts_
-#  cat /tmp/hosts_ > /etc/hosts
-#  rm /tmp/hosts_
-#  echo $HOSTNAME > /etc/hostname
-#  echo $DOMAIN > /etc/mailname
-
 fi
+
+hostname -f > /etc/mailname
 
 if [ ! -z ${TIMEZONE} ]; then
   echo Updating timezone
   echo $TIMEZONE > /etc/timezone
-  rm /etc/localtime
+  rm -f /etc/localtime
   ln -s /usr/share/zoneinfo/$TIMEZONE
   dpkg-reconfigure tzdata
 fi

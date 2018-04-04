@@ -4,6 +4,8 @@ while ! nc -z localhost 993; do
   sleep 1
 done
 
+sed -i "s/^webmaster[ \t]*=[ \t]*\"postmaster@[a-zA-Z0-9.-]\+\"/webmaster = \"postmaster@$(hostname -d)\"/g" /opt/www/iredadmin/settings.py
+
 if [ ! -z ${MYSQL_HOST} ]; then
     sed -i "/^iredadmin_db_host[ \t]*=.*/s/=.*/= \"${MYSQL_HOST}\"/g" /opt/www/iredadmin/settings.py
     sed -i "/^vmail_db_host[ \t]*=.*/s/=.*/= \"$MYSQL_HOST\"/g" /opt/www/iredadmin/settings.py

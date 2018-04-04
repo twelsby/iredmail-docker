@@ -1,7 +1,7 @@
 #!/bin/sh
 
-export HOME=/root
-export USER=root
+export HOME="/root"
+export USER="root"
 echo "[client]\nhost=$MYSQL_HOST\nuser=root\npassword=\"${MYSQL_ROOT_PASSWORD}\"" > /root/.my.cnf
 
 if [ ! -d /var/lib/mysql/mysql ]; then
@@ -18,11 +18,10 @@ while ! mysqladmin ping --silent; do
     echo -n "."
     sleep 1;
 done
-echo
 
 # Create remote database if necessary
 for i in amavisd iredadmin iredapd roundcubemail sogo vmail; do
-    if [ "a$(mysql -e "SELECT SCHEMA_NAME FROM INFORMATION_SCHEMA.SCHEMATA WHERE SCHEMA_NAME = \"$i\"\G")" = "a" ]
+    if [ "a$(mysql -e ""SELECT SCHEMA_NAME FROM INFORMATION_SCHEMA.SCHEMATA WHERE SCHEMA_NAME = \"$i\"\G"")" = "a" ]
     then
         echo Creating database $i
         mysqldump -h127.0.0.1 $1 -r /root/$i.sql
@@ -51,21 +50,20 @@ fi
 
 
 # Update default email accounts
-if [ ! -z ${DOMAIN} ]; then
-    echo "(postmaster) "
-    tmp=$(tempfile)
-    mysqldump vmail mailbox alias domain domain_admins -r $tmp
-    sed -i "s/DOMAIN/${DOMAIN}/g" $tmp
+DOMAIN=$(hostname -d)
+echo "(postmaster) "
+tmp=$(tempfile)
+mysqldump vmail mailbox alias domain domain_admins -r $tmp
+sed -i "s/DOMAIN/${DOMAIN}/g" $tmp
 
-    # Update default email accounts
-    if [ ! -z ${POSTMASTER_PASSWORD} ]; then
-        echo "(postmaster password) "
-        echo "UPDATE mailbox SET password='${POSTMASTER_PASSWORD}' WHERE username='postmaster@${DOMAIN}';" >> $tmp
-    fi
-
-    mysql vmail < $tmp > /dev/null 2>&1
-    rm $tmp
+# Update default email accounts
+if [ ! -z ${POSTMASTER_PASSWORD} ]; then
+    echo "(postmaster password) "
+    echo "UPDATE mailbox SET password='${POSTMASTER_PASSWORD}' WHERE username='postmaster@${DOMAIN}';" >> $tmp
 fi
+
+mysql vmail < $tmp > /dev/null 2>&1
+rm $tmp
 
 
 # Update passwords for service accounts

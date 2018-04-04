@@ -31,10 +31,8 @@ RUN wget -O - https://bitbucket.org/zhb/iredmail/downloads/iRedMail-"${IREDMAIL_
     tar xvj --strip-components=1
 
 # Generate configuration file
-ENV DOMAIN=DOMAIN
-ENV HOSTNAME=HOSTNAME
 COPY ./config-gen /opt/iredmail/config-gen
-RUN sh ./config-gen $HOSTNAME $DOMAIN > ./config
+RUN sh ./config-gen HOSTNAME DOMAIN > ./config
 
 # Initiate automatic installation process
 RUN sed -i 's/^\s\+check_hostname\s*$/#    check_hostname/' /opt/iredmail/conf/core \
