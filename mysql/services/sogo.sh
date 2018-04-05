@@ -16,9 +16,6 @@ LOGFILE=/var/log/$NAME/$NAME.log
 
 # Overwrite prefork from attribute
 if [ ! -z ${SOGO_WORKERS} ]; then
-    sed -i 's/PREFORK=.*$'/PREFORK=$SOGO_WORKERS/ /etc/default/sogo
-    sed -i 's/WOWorkersCount.*$'/WOWorkersCount=$SOGO_WORKERS\;/ /etc/sogo/sogo.conf
-
     if [ $SOGO_WORKERS -ne $PREFORK ]; then
         PREFORK=$SOGO_WORKERS
     fi
