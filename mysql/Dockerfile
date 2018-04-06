@@ -61,7 +61,9 @@ RUN sed -i "s/^exit 101$/exit 0/" /usr/sbin/policy-rc.d \
     && sed -i 's/^bind-address/#bind-address/' /etc/mysql/mysql.conf.d/mysqld.cnf \
     && sed -i 's/SHOWWARNING[ \t]*=.*/SHOWWARNING=false/g' /etc/tmpreaper.conf \
     && install -o amavis -g amavis -m 750 -d /var/lib/amavis/.spamassassin \
-    && install -o amavis -g amavis -m 640 -T /usr/share/spamassassin/user_prefs.template /var/lib/amavis/.spamassassin/user_prefs
+    && install -o amavis -g amavis -m 640 -T /usr/share/spamassassin/user_prefs.template /var/lib/amavis/.spamassassin/user_prefs \
+    && rm -f /etc/ssl/private/iRedMail.key \
+    && rm -f /etc/ssl/certs/iRedMail.crt
 
 # Prepare for the first run
 RUN tar jcf /root/mysql.tar.bz2 /var/lib/mysql && rm -rf /var/lib/mysql \
@@ -104,6 +106,7 @@ RUN apt-get purge -y -q dialog apt-utils augeas-tools \
 # Default values changable at startup
 ENV SOGO_WORKERS=2
 ENV MYSQL_HOST=127.0.0.1
+ENV MYSQL_CONTAINER=%
 
 # Open Ports:
 # Apache: 80/tcp, 443/tcp Postfix: 25/tcp, 587/tcp

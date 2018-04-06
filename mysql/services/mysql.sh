@@ -69,16 +69,16 @@ rm $tmp
 # Update passwords for service accounts
 . /opt/iredmail/.cv
 tmp=$(tempfile)
-echo "DELETE FROM user WHERE Host='hostname.domain';" >> $tmp
-echo "GRANT SELECT,INSERT,UPDATE,DELETE ON amavisd.* TO 'amavisd'@'%' IDENTIFIED BY '""$AMAVISD_DB_PASSWD""';" >> $tmp
-echo "GRANT ALL ON sogo.* TO 'sogo'@'%' IDENTIFIED BY '""$SOGO_DB_PASSWD""';" >> $tmp
-echo "GRANT SELECT ON vmail.mailbox TO 'sogo'@'%';" >> $tmp
-echo "GRANT ALL ON roundcubemail.* TO 'roundcube'@'%' IDENTIFIED BY '""$RCM_DB_PASSWD""';" >> $tmp
-echo "GRANT UPDATE,SELECT ON vmail.mailbox TO 'roundcube'@'%';" >> $tmp
-echo "GRANT ALL ON iredadmin.* TO 'iredadmin'@'%' IDENTIFIED BY '""$IREDADMIN_DB_PASSWD""';" >> $tmp
-echo "GRANT ALL ON iredapd.* TO 'iredapd'@'%' IDENTIFIED BY '""$IREDAPD_DB_PASSWD""';" >> $tmp
-echo "GRANT SELECT ON vmail.* TO 'vmail'@'%' IDENTIFIED BY '""$VMAIL_DB_BIND_PASSWD""';" >> $tmp
-echo "GRANT SELECT,INSERT,DELETE,UPDATE ON vmail.* TO 'vmailadmin'@'%' IDENTIFIED BY '""$VMAIL_DB_ADMIN_PASSWD""';" >> $tmp
+echo "DELETE FROM user WHERE Host='hostname.domain' OR Host='localhost';" >> $tmp
+echo "GRANT SELECT,INSERT,UPDATE,DELETE ON amavisd.* TO 'amavisd'@'""${MYSQL_CONTAINER}""' IDENTIFIED BY '""$AMAVISD_DB_PASSWD""';" >> $tmp
+echo "GRANT ALL ON sogo.* TO 'sogo'@'""${MYSQL_CONTAINER}""' IDENTIFIED BY '""$SOGO_DB_PASSWD""';" >> $tmp
+echo "GRANT SELECT ON vmail.mailbox TO 'sogo'@'""${MYSQL_CONTAINER}""';" >> $tmp
+echo "GRANT ALL ON roundcubemail.* TO 'roundcube'@'""${MYSQL_CONTAINER}""' IDENTIFIED BY '""$RCM_DB_PASSWD""';" >> $tmp
+echo "GRANT UPDATE,SELECT ON vmail.mailbox TO 'roundcube'@'""${MYSQL_CONTAINER}""';" >> $tmp
+echo "GRANT ALL ON iredadmin.* TO 'iredadmin'@'""${MYSQL_CONTAINER}""' IDENTIFIED BY '""$IREDADMIN_DB_PASSWD""';" >> $tmp
+echo "GRANT ALL ON iredapd.* TO 'iredapd'@'""${MYSQL_CONTAINER}""' IDENTIFIED BY '""$IREDAPD_DB_PASSWD""';" >> $tmp
+echo "GRANT SELECT ON vmail.* TO 'vmail'@'""${MYSQL_CONTAINER}""' IDENTIFIED BY '""$VMAIL_DB_BIND_PASSWD""';" >> $tmp
+echo "GRANT SELECT,INSERT,DELETE,UPDATE ON vmail.* TO 'vmailadmin'@'""${MYSQL_CONTAINER}""' IDENTIFIED BY '""$VMAIL_DB_ADMIN_PASSWD""';" >> $tmp
 echo "FLUSH PRIVILEGES;" >> $tmp
 echo "(service accounts) "
 mysql mysql < $tmp > /dev/null 2>&1
