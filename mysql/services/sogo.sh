@@ -30,7 +30,7 @@ if [ ! -z ${TIMEZONE} ]; then
 fi
 
 if [ ! -z ${MYSQL_HOST} ]; then
-    sed -i "s/@[a-zA-Z0-9.-]\+:3306/@$MYSQL_HOST:3306/g" /etc/sogo/sogo.conf
+    sed -i "s/@[a-zA-Z0-9.-]\+:3306/@$MYSQL_HOST:3306/" /etc/sogo/sogo.conf
 fi
 
 # Update MySQL password

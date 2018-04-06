@@ -25,12 +25,4 @@ fi
 
 hostname -f > /etc/mailname
 
-if [ ! -z ${TIMEZONE} ]; then
-  echo Updating timezone
-  echo $TIMEZONE > /etc/timezone
-  rm -f /etc/localtime
-  ln -s /usr/share/zoneinfo/$TIMEZONE
-  dpkg-reconfigure tzdata
-fi
-
 exit 0

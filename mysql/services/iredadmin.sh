@@ -4,13 +4,13 @@ while ! nc -z localhost 993; do
   sleep 1
 done
 
-sed -i "s/^webmaster[ \t]*=[ \t]*\"postmaster@[a-zA-Z0-9.-]\+\"/webmaster = \"postmaster@$(hostname -d)\"/g" /opt/www/iredadmin/settings.py
+sed -i "s/DOMAIN/$(hostname -d)/g" /opt/www/iredadmin/settings.py
 
 if [ ! -z ${MYSQL_HOST} ]; then
-    sed -i "/^iredadmin_db_host[ \t]*=.*/s/=.*/= \"${MYSQL_HOST}\"/g" /opt/www/iredadmin/settings.py
-    sed -i "/^vmail_db_host[ \t]*=.*/s/=.*/= \"$MYSQL_HOST\"/g" /opt/www/iredadmin/settings.py
-    sed -i "/^amavisd_db_host[ \t]*=.*/s/=.*/= \"$MYSQL_HOST\"/g" /opt/www/iredadmin/settings.py
-    sed -i "/^iredapd_db_host[ \t]*=.*/s/=.*/= \"$MYSQL_HOST\"/g" /opt/www/iredadmin/settings.py
+    sed -i "/^iredadmin_db_host[ \t]*=.*/s/=.*/= \"${MYSQL_HOST}\"/" /opt/www/iredadmin/settings.py
+    sed -i "/^vmail_db_host[ \t]*=.*/s/=.*/= \"$MYSQL_HOST\"/" /opt/www/iredadmin/settings.py
+    sed -i "/^amavisd_db_host[ \t]*=.*/s/=.*/= \"$MYSQL_HOST\"/" /opt/www/iredadmin/settings.py
+    sed -i "/^iredapd_db_host[ \t]*=.*/s/=.*/= \"$MYSQL_HOST\"/" /opt/www/iredadmin/settings.py
 fi
 
 # Update MySQL password

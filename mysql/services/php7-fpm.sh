@@ -5,7 +5,7 @@ while ! nc -z localhost 993; do
 done
 
 if [ ! -z ${MYSQL_HOST} ]; then
-    sed -i "s/@[a-zA-Z0-9.-]\+:3306/@${MYSQL_HOST}:3306/g" /opt/www/roundcubemail/config/config.inc.php
+    sed -i "s/@[a-zA-Z0-9.-]\+:3306/@${MYSQL_HOST}:3306/" /opt/www/roundcubemail/config/config.inc.php
 fi
 
 # Update RCB password

@@ -28,9 +28,9 @@ while [ ! -f /var/tmp/postfix.run ]; do
 done
 
 if [ ! -z ${MYSQL_HOST} ]; then
-    sed -i "/^vmail_db_server[ \t]*=.*/s/=.*/= \"${MYSQL_HOST}\"/g" /opt/iredapd/settings.py
-    sed -i "/^amavisd_db_server[ \t]*=.*/s/=.*/= \"${MYSQL_HOST}\"/g" /opt/iredapd/settings.py
-    sed -i "/^iredapd_db_server[ \t]*=.*/s/=.*/= \"${MYSQL_HOST}\"/g" /opt/iredapd/settings.py
+    sed -i "/^vmail_db_server[ \t]*=.*/s/=.*/= \"${MYSQL_HOST}\"/" /opt/iredapd/settings.py
+    sed -i "/^amavisd_db_server[ \t]*=.*/s/=.*/= \"${MYSQL_HOST}\"/" /opt/iredapd/settings.py
+    sed -i "/^iredapd_db_server[ \t]*=.*/s/=.*/= \"${MYSQL_HOST}\"/" /opt/iredapd/settings.py
 fi
 
 # Update MySQL password

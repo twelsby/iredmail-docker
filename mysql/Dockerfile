@@ -35,12 +35,11 @@ COPY ./config-gen /opt/iredmail/config-gen
 RUN sh ./config-gen HOSTNAME DOMAIN > ./config
 
 # Initiate automatic installation process
-RUN sed -i 's/^\s\+check_hostname\s*$/#    check_hostname/' /opt/iredmail/conf/core \
-    && sed -i 's/^check_hostname\s*$/#check_hostname/' /opt/iredmail/pkgs/get_all.sh \
-    && sleep 5;service mysql start \
+RUN sleep 5;service mysql start \
     && sed -i 's/1.3.0/1.3.3/' /opt/iredmail/pkgs/MD5.misc /opt/iredmail/conf/roundcube \
     && sed -i 's/9f81625029663c7b19402542356abd5e/71b16babe3beb7639ad7a4595b3ac92a/' /opt/iredmail/pkgs/MD5.misc \
     && IREDMAIL_DEBUG='NO' \
+      IREDMAIL_HOSTNAME="HOSTNAME.DOMAIN" \
       CHECK_NEW_IREDMAIL='NO' \
       AUTO_USE_EXISTING_CONFIG_FILE=y \
       AUTO_INSTALL_WITHOUT_CONFIRM=y \
@@ -103,7 +102,6 @@ RUN apt-get purge -y -q dialog apt-utils augeas-tools \
     && rm -rf /var/lib/apt/lists/*
 
 # Default values changable at startup
-ENV TIMEZONE=Europe/Prague
 ENV SOGO_WORKERS=2
 ENV MYSQL_HOST=127.0.0.1
 

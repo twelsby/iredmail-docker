@@ -5,17 +5,17 @@ while [ ! -f /var/tmp/postfix.run ]; do
   sleep 1
 done
 
-DOMAIN=$(hostname -d)
-HOSTNAME=$(hostname -f)
-
 echo "*** Starting amavis.."
-sed -i "s/$mydomain[ \t]*=[ \t]*\"[a-zA-Z0-9.-]\+\"/$mydomain = \"${DOMAIN}\"/g" /etc/amavis/conf.d/50-user
-sed -i "s/$myhostname[ \t]*=[ \t]*\"[a-zA-Z0-9.-]\+\"/$myhostname = \"${HOSTNAME}\"/g" /etc/amavis/conf.d/50-user
-sed -i "s/^dkim_key(.*);/dkim_key(\"${DOMAIN}\", \"dkim\", \"\/var\/lib\/dkim\/${DOMAIN}.pem\");/g" /etc/amavis/conf.d/50-user
-mv /var/lib/dkim/DOMAIN.pem /var/lib/dkim/${DOMAIN}.pem
+if [ -e /var/lib/dkim/DOMAIN.pem ]; then
+    DOMAIN=$(hostname -d)
+    HOSTNAME=$(hostname -s)
+    sed -i "s/DOMAIN/${DOMAIN}/g" /etc/amavis/conf.d/50-user
+    sed -i "s/HOSTNAME/${HOSTNAME}/g" /etc/amavis/conf.d/50-user
+    mv /var/lib/dkim/DOMAIN.pem /var/lib/dkim/${DOMAIN}.pem
+fi
 
 if [ ! -z $MYSQL_HOST} ]; then
-    sed -i "s/host=[a-zA-Z0-9.-]\+;port=3306/host=${MYSQL_HOST};port=3306/g" /etc/amavis/conf.d/50-user
+    sed -i "s/host=[a-zA-Z0-9.-]\+;port=3306/host=${MYSQL_HOST};port=3306/" /etc/amavis/conf.d/50-user
 fi
 
 # Update password
