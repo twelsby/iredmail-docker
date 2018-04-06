@@ -1,7 +1,6 @@
 #!/bin/bash
 DOMAIN=$2
 HOSTNAME=$1
-echo export IREDMAIL_HOSTNAME="$HOSTNAME.$DOMAIN"
 echo export VMAIL_USER_HOME_DIR='/var/vmail'
 echo export STORAGE_BASE_DIR='/var/vmail'
 echo export STORAGE_MAILBOX_DIR='/var/vmail/vmail1'
