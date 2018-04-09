@@ -35,6 +35,9 @@ RUN echo "APT::Install-Recommends 0;" >> /etc/apt/apt.conf.d/01-no-recommends \
     && mv /bin/uname /bin/uname_ \
     && mv /bin/hostname /bin/hostname_
 
+# Backup mysql files
+RUN tar jcf /root/mysql.tar.bz2 /var/lib/mysql
+
 COPY ./uname /bin/uname
 COPY ./hostname /bin/hostname
 
@@ -67,6 +70,9 @@ RUN sed s/$(hostname_)/$(cat /opt/hostname | xargs echo -n).$(cat /etc/mailname 
        AUTO_CLEANUP_REPLACE_MYSQL_CONFIG=y \
        AUTO_CLEANUP_RESTART_POSTFIX=n \
        bash iRedMail.sh \
+    && for i in vmail amavisd iredadmin iredapd sogo roundcubemail; do mysqldump -hlocalhost -uroot -B $i -r /root/$i.sql; done \
+    && for i in vmail vmailadmin amavisd iredadmin roundcube sogo iredapd; do mysql -hlocalhost -uroot -B -N -e "SHOW CREATE USER '$i'@'localhost'; SHOW GRANTS FOR '$i'@'localhost'"; done > /root/user.sql \
+    && sed -i "s/ PASSWORD EXPIRE DEFAULT//;s/ ACCOUNT UNLOCK//;s/$/;/" /root/user.sql \
     && apt-get autoremove -y -q \
     && apt-get clean -y -q
 
@@ -80,7 +86,7 @@ RUN sed -i '/^Foreground /c Foreground true' /etc/clamav/clamd.conf \
     && install -o amavis -g amavis -m 640 -T /usr/share/spamassassin/user_prefs.template /var/lib/amavis/.spamassassin/user_prefs
 
 # Prepare for the first run
-RUN tar jcf /root/mysql.tar.bz2 /var/lib/mysql && rm -rf /var/lib/mysql \
+RUN rm -rf /var/lib/mysql \
     && tar jcf /root/vmail.tar.bz2 /var/vmail && rm -rf /var/vmail \
     && rm -rf /var/lib/clamav/*
 
@@ -124,3 +130,5 @@ EXPOSE 80 443 25 587 110 143 993 995
 
 # Default values changable at startup
 ENV SOGO_WORKERS=2
+ENV MYSQL_HOST=127.0.0.1
+ENV MYSQL_CONTAINER=%

@@ -7,19 +7,19 @@ while [ ! -f /var/tmp/mysql.run ]; do
 done
 # MySQL actually runs
 while ! mysqladmin ping -h localhost --silent; do
-  sleep 1; 
+  sleep 1
 done
 
 
 # Service startup
-if [ ! -z ${DOMAIN} ]; then 
+if [ ! -z ${DOMAIN} ]; then
     sed -i "s/DOMAIN/${DOMAIN}/g" /etc/postfix/main.cf /etc/postfix/aliases
     newaliases
 fi
 
-if [ ! -z ${HOSTNAME} ]; then 
+if [ ! -z ${HOSTNAME} ]; then
     sed -i "s/HOSTNAME/${HOSTNAME}/g" /etc/postfix/main.cf
-fi;
+fi
 
 
 # Restore data in case of first run
@@ -27,20 +27,20 @@ if [ ! -d /var/vmail/backup ]; then
     echo "*** Creating vmail structure.."
     cd / && tar jxf /root/vmail.tar.bz2
     rm /root/vmail.tar.bz2
-    
-    if [ ! -z ${DOMAIN} ]; then 
-        sed -i "s/DOMAIN/${DOMAIN}/g" /etc/postfix/main.cf /etc/postfix/aliases        
+
+    if [ ! -z ${DOMAIN} ]; then
+        sed -i "s/DOMAIN/${DOMAIN}/g" /etc/postfix/main.cf /etc/postfix/aliases
         mv /var/vmail/vmail1/DOMAIN /var/vmail/vmail1/$DOMAIN
     fi
-    
-    if [ ! -z ${HOSTNAME} ]; then 
+
+    if [ ! -z ${HOSTNAME} ]; then
         sed -i "s/HOSTNAME/${HOSTNAME}/g" /etc/postfix/main.cf
     fi;
-    
-    if [ ! -z ${HOSTNAME} ] && [ ! -z ${DOMAIN} ]; then 
+
+    if [ ! -z ${HOSTNAME} ] && [ ! -z ${DOMAIN} ]; then
         echo "127.0.0.1     ${HOSTNAME}.${DOMAIN}" >> /etc/hosts
     fi
-    
+
     # Update of local aliases
     newaliases
 fi
@@ -63,6 +63,11 @@ trap_term_signal() {
 }
 
 # Update MySQL password
+if [ ! -z ${MYSQL_HOST} ]; then
+    for i in /etc/postfix/mysql/*.cf; do
+        sed -i "/^hosts[ \t]*=.*/s/=.*$/= ${MYSQL_HOST}/g" $i
+    done
+fi
 . /opt/iredmail/.cv
 sed -i "s/TEMP_VMAIL_DB_BIND_PASSWD/$VMAIL_DB_BIND_PASSWD/" /etc/postfix/mysql/catchall_maps.cf \
     /etc/postfix/mysql/domain_alias_maps.cf \
