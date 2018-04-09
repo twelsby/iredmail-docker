@@ -6,11 +6,11 @@ while [ ! -f /var/tmp/postfix.run ]; do
 done
 
 echo "*** Starting amavis.."
-if [ ! -e /var/lib/dkim/DOMAIN.pem ]; then
-    DOMAIN=$(hostname -d)
-    HOSTNAME=$(hostname -s)
-    sed -i "s/DOMAIN/${DOMAIN}/g" /etc/amavis/conf.d/50-user
-    sed -i "s/HOSTNAME/${HOSTNAME}/g" /etc/amavis/conf.d/50-user
+DOMAIN=$(hostname -d)
+HOSTNAME=$(hostname -s)
+sed -i "s/DOMAIN/${DOMAIN}/g" /etc/amavis/conf.d/50-user
+sed -i "s/HOSTNAME/${HOSTNAME}/g" /etc/amavis/conf.d/50-user
+if [ ! -e /var/lib/dkim/${DOMAIN}.pem ]; then
     amavisd-new genrsa /var/lib/dkim/${DOMAIN}.pem 1024
     chown amavis:amavis /var/lib/dkim/${DOMAIN}.pem
     chmod 0400 /var/lib/dkim/${DOMAIN}.pem
