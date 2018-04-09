@@ -75,7 +75,7 @@ mysql < /root/user.sql
 
 # Rename service user accounts
 if [ ! -z ${MYSQL_HOST} ] && [ "$MYSQL_HOST" != "localhost" ] && [ "$MYSQL_HOST" != "127.0.0.1" ]; then
-    CONTAINER=$(hostname_ -i)
+    CONTAINER=$(hostname -i)
     for u in vmail vmailadmin amavisd iredadmin roundcube sogo iredapd; do
         mysql -e "RENAME USER '$u'@'localhost' TO '$u'@'$CONTAINER';"
     done
