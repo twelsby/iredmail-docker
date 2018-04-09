@@ -14,24 +14,20 @@ NAME=sogo
 PIDFILE=/var/run/$NAME/$NAME.pid
 LOGFILE=/var/log/$NAME/$NAME.log
 
-# Overwrite prefork from attribute
-if [ ! -z ${SOGO_WORKERS} ]; then
-    if [ $SOGO_WORKERS -ne $PREFORK ]; then
-        PREFORK=$SOGO_WORKERS
-    fi
-fi
 
 # Format options
-DAEMON_OPTS="-WOWorkersCount $PREFORK -WOPidFile $PIDFILE -WOLogFile $LOGFILE -WONoDetach YES"
+DAEMON_OPTS="-WOWorkersCount $SOGO_WORKERS -WOPidFile $PIDFILE -WOLogFile $LOGFILE -WONoDetach YES"
+
 
 # Manually change timezone based on attribute
-if [ ! -z ${TIMEZONE} ]; then
-    DAEMON_OPTS="$DAEMON_OPTS -WSOGoTimeZone $TIMEZONE"
-fi
+sed -i "/SOGoTimeZone/s#=.*#= $TZ;#" /etc/sogo/sogo.conf
 
+
+# Patch configuration
 if [ ! -z ${MYSQL_HOST} ]; then
     sed -i "s/@[a-zA-Z0-9.-]\+:3306/@$MYSQL_HOST:3306/" /etc/sogo/sogo.conf
 fi
+
 
 # Update MySQL password
 . /opt/iredmail/.cv

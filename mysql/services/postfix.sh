@@ -6,8 +6,8 @@ while [ ! -f /var/tmp/mysql.run ]; do
   sleep 1
 done
 # MySQL actually runs
-while ! mysqladmin ping -h localhost --silent; do
-  sleep 1;
+while ! mysqladmin ping -s; do
+  sleep 1
 done
 
 HOSTNAME=$(hostname -s)
@@ -16,13 +16,14 @@ DOMAIN=$(hostname -d)
 # Service startup
 sed -i "s/DOMAIN/${DOMAIN}/g" /etc/postfix/main.cf
 sed -i "s/HOSTNAME/${HOSTNAME}/g" /etc/postfix/main.cf /etc/postfix/aliases
+newaliases
 
 # Restore data in case of first run
-if [ ! -d /var/vmail/backup ] && [ ! -d /var/vmail/vmail1/$DOMAIN ]; then
+if [ ! -d /var/vmail/backup ] && [ ! -d /var/vmail/vmail1/${DOMAIN} ]; then
     echo "*** Creating vmail structure.."
     cd / && tar jxf /root/vmail.tar.bz2
     rm /root/vmail.tar.bz2
-    mv /var/vmail/vmail1/DOMAIN /var/vmail/vmail1/$DOMAIN
+    mv /var/vmail/vmail1/DOMAIN /var/vmail/vmail1/${DOMAIN}
 
     # Patch iredmail-tips and welcome email
     . /opt/iredmail/.cv
@@ -39,6 +40,9 @@ if [ ! -d /var/vmail/backup ] && [ ! -d /var/vmail/vmail1/$DOMAIN ]; then
     sed -i "/Username:[ \t]roundcube/{n;s/Password:[ \t]*.*/Password: \"${RCM_DB_PASSWD}\"/}" ${FILES}
     sed -i "/Database user:[ \t]*sogo/{n;s/Database password:[ \t]*.*/Database password: \"${SOGO_DB_PASSWD}\"/}" ${FILES}
     sed -i "/username:[ \t]*sogo_sieve_master@not-exist\.com/{n;s/password:[ \t]*.*/password: \"${SOGO_SIEVE_MASTER_PASSWD}\"/}" ${FILES}
+    for file in $FILES; do
+        /bin/echo -e "$(sed '/DNS record for DKIM support:/q' ${file})\n$(amavisd-new showkeys)\n\n$(sed -ne '/Amavisd-new:/,$ p' ${file})" > ${file}
+    done
     FILES="${FILES} ${MAILDIR}/links.eml ${MAILDIR}/mua.eml"
     sed -i "s/DOMAIN/${DOMAIN}/g" ${FILES}
     sed -i "s/HOSTNAME/${HOSTNAME}/g" ${FILES}

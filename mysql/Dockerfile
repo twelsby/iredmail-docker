@@ -25,6 +25,9 @@ RUN echo "APT::Install-Recommends 0;" >> /etc/apt/apt.conf.d/01-no-recommends \
     && apt-get autoremove -y -q \
     && apt-get clean -y -q
 
+# Backup mysql files
+RUN tar jcf /root/mysql.tar.bz2 /var/lib/mysql
+
 # Install of iRedMail from sources
 WORKDIR /opt/iredmail
 RUN wget -O - https://bitbucket.org/zhb/iredmail/downloads/iRedMail-"${IREDMAIL_VERSION}".tar.bz2 | \
@@ -50,6 +53,9 @@ RUN sleep 5;service mysql start \
       AUTO_CLEANUP_REPLACE_MYSQL_CONFIG=y \
       AUTO_CLEANUP_RESTART_POSTFIX=n \
       bash iRedMail.sh \
+    && for i in vmail amavisd iredadmin iredapd sogo roundcubemail; do mysqldump -hlocalhost -uroot -B $i -r /root/$i.sql; done \
+    && for i in vmail vmailadmin amavisd iredadmin roundcube sogo iredapd; do mysql -hlocalhost -uroot -B -N -e "SHOW CREATE USER '$i'@'localhost'; SHOW GRANTS FOR '$i'@'localhost'"; done > /root/user.sql \
+    && sed -i "s/ PASSWORD EXPIRE DEFAULT//;s/ ACCOUNT UNLOCK//;s/$/;/" /root/user.sql \
     && apt-get autoremove -y -q \
     && apt-get clean -y -q
 
@@ -63,10 +69,11 @@ RUN sed -i "s/^exit 101$/exit 0/" /usr/sbin/policy-rc.d \
     && install -o amavis -g amavis -m 750 -d /var/lib/amavis/.spamassassin \
     && install -o amavis -g amavis -m 640 -T /usr/share/spamassassin/user_prefs.template /var/lib/amavis/.spamassassin/user_prefs \
     && rm -f /etc/ssl/private/iRedMail.key \
-    && rm -f /etc/ssl/certs/iRedMail.crt
+    && rm -f /etc/ssl/certs/iRedMail.crt \
+    && rm -f /var/lib/dkim/DOMAIN.pem
 
 # Prepare for the first run
-RUN tar jcf /root/mysql.tar.bz2 /var/lib/mysql && rm -rf /var/lib/mysql \
+RUN rm -rf /var/lib/mysql \
     && tar jcf /root/vmail.tar.bz2 /var/vmail && rm -rf /var/vmail \
     && tar jcf /root/clamav.tar.bz2 /var/lib/clamav && rm -rf /var/lib/clamav
 
@@ -103,12 +110,12 @@ RUN apt-get purge -y -q dialog apt-utils augeas-tools \
     && apt-get clean -y -q \
     && rm -rf /var/lib/apt/lists/*
 
-# Default values changable at startup
-ENV SOGO_WORKERS=2
-ENV MYSQL_HOST=127.0.0.1
-ENV MYSQL_CONTAINER=%
-
 # Open Ports:
 # Apache: 80/tcp, 443/tcp Postfix: 25/tcp, 587/tcp
 # Dovecot: 110/tcp, 143/tcp, 993/tcp, 995/tcp
 EXPOSE 80 443 25 587 110 143 993 995
+
+# Default values changable at startup
+ENV SOGO_WORKERS=2
+ENV MYSQL_HOST=127.0.0.1
+ENV TZ=Etc/UT
