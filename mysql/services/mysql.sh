@@ -47,7 +47,7 @@ echo "*** Configuring MySQL database"
 
 
 # Update default email accounts
-sed -i "s/DOMAIN/${hostname -d}/g" /root/vmail.sql
+sed -i "s/DOMAIN/$(hostname -d)/g" /root/vmail.sql
 
 
 # Create databases if necessary
