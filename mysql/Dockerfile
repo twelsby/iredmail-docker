@@ -2,8 +2,8 @@ FROM phusion/baseimage:latest
 MAINTAINER Miloš Kozák <milos.kozak@lejmr.com>
 
 # Suporting software versions
-ARG IREDMAIL_VERSION=0.9.7
-ARG ADMINER_VERSION=4.3.1
+ARG IREDMAIL_VERSION=0.9.8
+ARG ADMINER_VERSION=4.6.2
 
 ### Installation
 # Prerequisites
@@ -39,8 +39,6 @@ RUN sh ./config-gen HOSTNAME DOMAIN > ./config
 
 # Initiate automatic installation process
 RUN sleep 5;service mysql start \
-    && sed -i 's/1.3.0/1.3.3/' /opt/iredmail/pkgs/MD5.misc /opt/iredmail/conf/roundcube \
-    && sed -i 's/9f81625029663c7b19402542356abd5e/71b16babe3beb7639ad7a4595b3ac92a/' /opt/iredmail/pkgs/MD5.misc \
     && sed -i "s/export[ \t]*SYSLOG_DAEMON_USER[ \t]*=[ \t]*'syslog'/export SYSLOG_DAEMON_USER='root'/" /opt/iredmail/conf/global \
     && IREDMAIL_DEBUG='NO' \
       IREDMAIL_HOSTNAME="HOSTNAME.DOMAIN" \
