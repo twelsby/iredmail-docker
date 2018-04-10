@@ -5,6 +5,11 @@ while ! nc -z localhost 25; do
   sleep 1
 done
 
+### Wait until clamav is started
+until [ -e /var/tmp/clamav.run ]; do
+  sleep 1
+done
+
 sed -i "s/DOMAIN/$(hostname -d)/g" /etc/dovecot/dovecot.conf
 
 if [ ! -z ${MYSQL_HOST} ]; then

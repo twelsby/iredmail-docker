@@ -47,7 +47,8 @@ echo "*** Configuring MySQL database"
 
 
 # Update default email accounts
-sed -i "s/DOMAIN/$(hostname -d)/g" /root/vmail.sql
+DOMAIN=$(hostname -d)
+sed -i "s/DOMAIN/${DOMAIN}/g" /root/vmail.sql
 
 
 # Create databases if necessary
@@ -63,7 +64,7 @@ done
 
 # Update default email accounts
 if [ ! -z ${POSTMASTER_PASSWORD} ]; then
-    mysql -e "UPDATE vmail.mailbox SET password='${POSTMASTER_PASSWORD}' WHERE username='postmaster@${DOMAIN}';" > /dev/null 2>&1
+    mysql -e "UPDATE vmail.mailbox SET password='${POSTMASTER_PASSWORD}' WHERE username='postmaster@${DOMAIN}';"
 fi
 
 

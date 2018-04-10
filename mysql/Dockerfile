@@ -26,7 +26,7 @@ RUN echo "APT::Install-Recommends 0;" >> /etc/apt/apt.conf.d/01-no-recommends \
     && apt-get clean -y -q
 
 # Backup mysql files
-RUN tar jcf /root/mysql.tar.bz2 /var/lib/mysql
+RUN tar jcf /root/mysql.tar.bz2 -C / var/lib/mysql
 
 # Install of iRedMail from sources
 WORKDIR /opt/iredmail
@@ -41,6 +41,7 @@ RUN sh ./config-gen HOSTNAME DOMAIN > ./config
 RUN sleep 5;service mysql start \
     && sed -i 's/1.3.0/1.3.3/' /opt/iredmail/pkgs/MD5.misc /opt/iredmail/conf/roundcube \
     && sed -i 's/9f81625029663c7b19402542356abd5e/71b16babe3beb7639ad7a4595b3ac92a/' /opt/iredmail/pkgs/MD5.misc \
+    && sed -i "s/export[ \t]*SYSLOG_DAEMON_USER[ \t]*=[ \t]*'syslog'/export SYSLOG_DAEMON_USER='root'/" /opt/iredmail/conf/global \
     && IREDMAIL_DEBUG='NO' \
       IREDMAIL_HOSTNAME="HOSTNAME.DOMAIN" \
       CHECK_NEW_IREDMAIL='NO' \
@@ -74,8 +75,8 @@ RUN sed -i "s/^exit 101$/exit 0/" /usr/sbin/policy-rc.d \
 
 # Prepare for the first run
 RUN rm -rf /var/lib/mysql \
-    && tar jcf /root/vmail.tar.bz2 /var/vmail && rm -rf /var/vmail \
-    && tar jcf /root/clamav.tar.bz2 /var/lib/clamav && rm -rf /var/lib/clamav
+    && tar jcf /root/vmail.tar.bz2 -C / var/vmail && rm -rf /var/vmail \
+    rm -rf /var/lib/clamav
 
 # Install Adminer
 RUN wget https://www.adminer.org/static/download/${ADMINER_VERSION}/adminer-${ADMINER_VERSION}.php -O /opt/www/roundcubemail/adminer.php
