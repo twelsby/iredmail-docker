@@ -39,7 +39,7 @@ RUN sh ./config-gen HOSTNAME DOMAIN > ./config
 
 # Initiate automatic installation process
 RUN sleep 5;service mysql start \
-    && sed -i "s/export[ \t]*SYSLOG_DAEMON_USER[ \t]*=[ \t]*'syslog'/export SYSLOG_DAEMON_USER='root'/" /opt/iredmail/conf/global \
+    && sed -i "s/export[ \t]*SYS_USER_SYSLOG[ \t]*=[ \t]*'syslog'/export SYS_USER_SYSLOG='root'/" /opt/iredmail/conf/global \
     && IREDMAIL_DEBUG='NO' \
       IREDMAIL_HOSTNAME="HOSTNAME.DOMAIN" \
       CHECK_NEW_IREDMAIL='NO' \
