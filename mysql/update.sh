@@ -1,90 +1,36 @@
 #!/bin/bash
 
-echo "+++ Backing up vmail database"
-mysqldump vmail -r /var/vmail/backup/mysql/vmail-0.9.7.sql
+echo === Backing up databases ===
+/var/vmail/backup/backup_mysql.sh
+echo
 
-echo +++ Update SQL vmail structure
-tmpf=$(tempfile)
-echo "-- USE vmail;
+echo === Backing up SOGo ===
+/var/vmail/backup/backup_sogo.sh
 
--- DROP column
-ALTER TABLE mailbox DROP COLUMN local_part;
+echo === Updating vmail database schema ===
+echo Applying https://bitbucket.org/zhb/iredmail/raw/default/extra/update/0.9.8/iredmail.mysql
+wget -O - -nv https://bitbucket.org/zhb/iredmail/raw/default/extra/update/0.9.8/iredmail.mysql | mysql -f vmail
+echo
 
--- Rename table
-RENAME TABLE alias_moderators TO moderators;
+echo === Updating amavisd database schema ===
+echo Applying https://bitbucket.org/zhb/iredmail/raw/default/extra/update/0.9.8/amavisd.mysql
+wget -O - -nv https://bitbucket.org/zhb/iredmail/raw/default/extra/update/0.9.8/amavisd.mysql | mysql -f amavisd
+echo
 
--- Column used to limit number of mailing lists a domain admin can create
-ALTER TABLE domain ADD COLUMN maillists INT(10) NOT NULL DEFAULT 0;
+echo === Updating sogo database schema ===
+echo Executing /usr/share/doc/sogo/sql-update-3.2.10_to_4.0.0-mysql.sh
+. /opt/iredmail/.cv
+{ echo "sogo"; echo "${MYSQL_HOST}"; echo "sogo"; } | bash -c $(sed "s/mysql \-p/mysql -p${SOGO_DB_PASSWD}/g" /usr/share/doc/sogo/sql-update-3.2.10_to_4.0.0-mysql.sh)
+echo
 
--- Column used to mark sql record is a mailing list
-ALTER TABLE forwardings ADD COLUMN `is_maillist` TINYINT(1) NOT NULL DEFAULT 0;
-ALTER TABLE forwardings ADD INDEX (`is_maillist`);
+echo === Updating roundcube database schema and checking settings ===
+echo Executing /opt/www/roundcubemail/bin/update.sh
+{ echo "y"; } | /opt/www/roundcubemail/bin/update.sh
+echo
 
--- Table used to store mailing list accounts
-CREATE TABLE IF NOT EXISTS maillists (
-    id BIGINT(20) UNSIGNED AUTO_INCREMENT,
-    address VARCHAR(255) NOT NULL DEFAULT '',
-    domain VARCHAR(255) NOT NULL DEFAULT '',
-    -- Per mailing list transport. for example: 'mlmmj:example.com/listname'.
-    transport VARCHAR(255) NOT NULL DEFAULT '',
-    accesspolicy VARCHAR(30) NOT NULL DEFAULT '',
-    maxmsgsize BIGINT(20) NOT NULL DEFAULT 0,
-    -- name of the mailing list
-    name VARCHAR(255) NOT NULL DEFAULT '',
-    -- short introduction of the mailing list on subscription page
-    description TEXT,
-    -- a server-wide unique id (a 36-characters string) for each mailing list
-    mlid VARCHAR(36) NOT NULL DEFAULT '',
-    -- control whether newsletter-style subscription from website is enabled
-    -- 1 -> enabled, 0 -> disabled
-    is_newsletter TINYINT(1) NOT NULL DEFAULT 0,
-    settings TEXT,
-    created DATETIME NOT NULL DEFAULT '1970-01-01 01:01:01',
-    modified DATETIME NOT NULL DEFAULT '1970-01-01 01:01:01',
-    expired DATETIME NOT NULL DEFAULT '9999-12-31 00:00:00',
-    active TINYINT(1) NOT NULL DEFAULT 1,
-    PRIMARY KEY (id),
-    UNIQUE INDEX (address),
-    UNIQUE INDEX (mlid),
-    INDEX (is_newsletter),
-    INDEX (domain),
-    INDEX (active)
-) ENGINE=InnoDB;" > $tmpf
-mysql -u root vmail < $tmpf
-rm $tmpf
-
-echo +++ Amavisd: Add new SQL column maddr.email_raw to store mail address without address extension
-tmpf=$(tempfile)
-echo "
--- If subject contains emoji, varchar doesn't work well.
-ALTER TABLE msgs MODIFY COLUMN subject VARBINARY(255) DEFAULT '';
-ALTER TABLE msgs MODIFY COLUMN from_addr VARBINARY(255) DEFAULT '';
-
--- mail address without address extension: user+abc@domain.com -> user@domain.com
-ALTER TABLE maddr ADD COLUMN email_raw varbinary(255) NOT NULL DEFAULT '';
-
--- index
-CREATE INDEX maddr_idx_email_raw ON maddr (email_raw);
-
--- Create trigger to save email address withou address extension
--- user+abc@domain.com -> user@domain.com
-DELIMITER //
-CREATE TRIGGER `maddr_email_raw`
-    BEFORE INSERT
-    ON `maddr`
-    FOR EACH ROW
-    BEGIN
-        IF (NEW.email LIKE '%+%') THEN
-            SET NEW.email_raw = CONCAT(SUBSTRING_INDEX(NEW.email, '+', 1), '@', SUBSTRING_INDEX(new.email, '@', -1));
-        ELSE
-            SET NEW.email_raw = NEW.email;
-        END IF;
-    END;
-//
-DELIMITER ;" > $tmpf
-mysql -u root amavisd < $tmpf
-rm $tmpf
-
-echo +++ Update iRedAPD
-cd /opt/iRedAPD-2.1/tools
-bash upgrade_iredapd.sh
+echo === Updating the iRedAPD database schema ===
+echo "Executing /opt/iredapd/tools/upgrade_iredapd.sh (patched)"
+F=/opt/iredapd/tools/upgrade_iredapd.sh
+X="$(sed '/^# Copy config file/,$d' $F) $(sed '1,/^# Require SQL root password/d' $F | sed '/^# Check dependent packages/,$d')"
+(cd /opt/iredapd/tools && bash -c "$X")
+echo
