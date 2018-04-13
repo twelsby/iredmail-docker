@@ -18,9 +18,16 @@ fi
 exec /sbin/setuser mysql /usr/sbin/mysqld &
 
 
-# Wait for SQL daemons
+# Wait for local SQL daemons
 echo "Waiting for local MySQL to come up"
 while ! mysqladmin ping -hlocalhost --silent; do sleep 1; done
+
+
+# Update password for on /etc/mysql/debian.cnf
+DEBIAN_MAINT_PW=$(sed -n "/password[ \t]*=[ \t]*/{s/.*=[ \t]*//p;q}" /etc/mysql/debian.cnf)
+mysql -hlocalhost -e "SET PASSWORD FOR 'debian-sys-maint'@'localhost'=PASSWORD('${DEBIAN_MAINT_PW}');"
+
+
 if [ ! -z ${MYSQL_HOST} ] && [ "$MYSQL_HOST" != "localhost" ] && [ "$MYSQL_HOST" != "127.0.0.1" ]; then
     # Update credentials
     echo "password=\"${MYSQL_ROOT_PASSWORD}\"\n" >> /root/.my.cnf
