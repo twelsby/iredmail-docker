@@ -65,7 +65,7 @@ done
 
 # Update default email accounts
 if [ ! -z ${POSTMASTER_PASSWORD} ]; then
-    mysql -e "UPDATE vmail.mailbox SET password='${POSTMASTER_PASSWORD}' WHERE username='postmaster@${DOMAIN}';" > /dev/null 2>&1
+    mysql -e "UPDATE vmail.mailbox SET password='${POSTMASTER_PASSWORD}' WHERE username='postmaster@${DOMAIN}';"
 fi
 
 

@@ -6,7 +6,7 @@ while [ ! -f /var/tmp/mysql.run ]; do
   sleep 1
 done
 # MySQL actually runs
-while ! mysqladmin ping -h localhost --silent; do
+while ! mysqladmin ping -s; do
   sleep 1
 done
 
