@@ -3,15 +3,7 @@
 # Store root account credentials
 export HOME="/root"
 export USER="root"
-echo "[client]\nhost=$MYSQL_HOST\nuser=root" > /root/.my.cnf
-
-
-# Restore local database
-if [ ! -d /var/lib/mysql/mysql ]; then
-    echo -n "*** Creating database.."
-    cd / && tar jxf /root/mysql.tar.bz2
-    rm /root/mysql.tar.bz2
-fi
+echo "[client]\nhost=localhost\nuser=root" > /root/.my.cnf
 
 
 # Start local daemon
@@ -20,17 +12,17 @@ exec /sbin/setuser mysql /usr/sbin/mysqld &
 
 # Wait for local SQL daemons
 echo "Waiting for local MySQL to come up"
-while ! mysqladmin ping -hlocalhost --silent; do sleep 1; done
+while ! mysqladmin ping --silent; do sleep 1; done
 
 
 # Update password for on /etc/mysql/debian.cnf
 DEBIAN_MAINT_PW=$(sed -n "/password[ \t]*=[ \t]*/{s/.*=[ \t]*//p;q}" /etc/mysql/debian.cnf)
-mysql -hlocalhost -e "SET PASSWORD FOR 'debian-sys-maint'@'localhost'=PASSWORD('${DEBIAN_MAINT_PW}');"
+mysql -e "SET PASSWORD FOR 'debian-sys-maint'@'localhost'=PASSWORD('${DEBIAN_MAINT_PW}');"
 
 
 if [ ! -z ${MYSQL_HOST} ] && [ "$MYSQL_HOST" != "localhost" ] && [ "$MYSQL_HOST" != "127.0.0.1" ]; then
     # Update credentials
-    echo "password=\"${MYSQL_ROOT_PASSWORD}\"\n" >> /root/.my.cnf
+    echo "[client]\nhost=$MYSQL_HOST\nuser=root\npassword=\"${MYSQL_ROOT_PASSWORD}\"\n" > /root/.my.cnf
 
     echo "Waiting for remote MySQL to come up"
     while ! mysqladmin ping --silent; do sleep 1; done
@@ -46,7 +38,7 @@ else
     fi
 
     # Update credentials
-    echo "password=\"${MYSQL_ROOT_PASSWORD}\"\n" >> /root/.my.cnf
+    echo "[client]\nhost=$MYSQL_HOST\nuser=root\npassword=\"${MYSQL_ROOT_PASSWORD}\"\n" > /root/.my.cnf
 fi
 
 

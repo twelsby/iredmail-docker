@@ -21,7 +21,7 @@ newaliases
 # Restore data in case of first run
 if [ ! -d /var/vmail/backup ] && [ ! -d /var/vmail/vmail1/${DOMAIN} ]; then
     echo "*** Creating vmail structure.."
-    cd / && tar jxf /root/vmail.tar.bz2
+    tar jxf /root/vmail.tar.bz2 -C /
     rm /root/vmail.tar.bz2
     mv /var/vmail/vmail1/DOMAIN /var/vmail/vmail1/${DOMAIN}
 
