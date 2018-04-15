@@ -6,6 +6,7 @@ echo
 
 echo === Backing up SOGo ===
 /var/vmail/backup/backup_sogo.sh
+echo
 
 echo === Updating vmail database schema ===
 echo Applying https://bitbucket.org/zhb/iredmail/raw/default/extra/update/0.9.8/iredmail.mysql
@@ -30,7 +31,15 @@ echo
 
 echo === Updating the iRedAPD database schema ===
 echo "Executing /opt/iredapd/tools/upgrade_iredapd.sh (patched)"
-F=/opt/iredapd/tools/upgrade_iredapd.sh
+cd /opt/iredapd/tools
+F=upgrade_iredapd.sh
 X="$(sed '/^# Copy config file/,$d' $F) $(sed '1,/^# Require SQL root password/d' $F | sed '/^# Check dependent packages/,$d')"
-(cd /opt/iredapd/tools && bash -c "$X")
+bash -c "$X"
+echo
+
+echo === Updating the iRedAdmin database schema ===
+cd /opt/www/iRedAdmin-0.9/tools
+F=upgrade_iredadmin.sh
+X="$(sed '/^# Copy config file/,$d' $F) $(sed '1,/^# Add new SQL tables/d' $F | sed '/^# Cron job\./,$d')"
+bash -c "$X"
 echo
