@@ -51,7 +51,10 @@ RUN sleep 5;service mysql start \
        AUTO_CLEANUP_REPLACE_MYSQL_CONFIG=y \
        AUTO_CLEANUP_RESTART_POSTFIX=n \
        bash iRedMail.sh \
-    && for i in vmail amavisd iredadmin iredapd sogo roundcubemail; do mysqldump -hlocalhost -uroot -B $i -r /root/$i.sql; done \
+    && /sbin/setuser sogo /usr/sbin/sogod \
+    && while [ $(mysql -s -e "SELECT COUNT(*) FROM information_schema.tables WHERE table_schema = 'sogo';") -lt 10 ]; do echo "Waiting"; sleep 1; done \
+    && for i in vmail amavisd iredadmin iredapd sogo roundcubemail; do mysqldump -hlocalhost -uroot -B --no-data $i -r /root/$i-schema.sql; done \
+    && for i in vmail amavisd iredadmin iredapd sogo roundcubemail; do mysqldump -hlocalhost -uroot -B --no-create-info --no-set-names --no-tablespaces --skip-triggers $i -r /root/$i-data.sql; done \
     && for i in vmail vmailadmin amavisd iredadmin roundcube sogo iredapd; do mysql -hlocalhost -uroot -B -N -e "SHOW CREATE USER '$i'@'localhost'; SHOW GRANTS FOR '$i'@'localhost'"; done > /root/user.sql \
     && sed -i "s/ PASSWORD EXPIRE DEFAULT//;s/ ACCOUNT UNLOCK//;s/$/;/" /root/user.sql \
     && apt-get autoremove -y -q \
