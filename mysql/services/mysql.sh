@@ -47,7 +47,7 @@ echo "*** Configuring MySQL database"
 
 # Update default email accounts
 DOMAIN=$(hostname -d)
-sed -i "s/DOMAIN/${DOMAIN}/g" /root/vmail-data.sql
+sed -i "s/DOMAIN/${DOMAIN}/g" /root/vmail.sql
 
 
 # Create databases if necessary
@@ -56,8 +56,7 @@ for i in vmail amavisd iredadmin iredapd roundcubemail sogo; do
     if [ -z "${result}" ]
     then
         echo Creating database $i
-        mysql < /root/$i-schema.sql
-        mysql < /root/$i-data.sql
+        mysql < /root/$i.sql
     fi
 done
 

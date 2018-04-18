@@ -8,50 +8,38 @@ echo === Backing up SOGo ===
 /var/vmail/backup/backup_sogo.sh
 echo
 
-echo === Migrating databases ===
-for i in vmail amavisd iredadmin iredapd sogo roundcubemail; do
-    echo "- Extracting existing data from $i"
-    mysqldump -B --complete-insert --no-create-info --no-set-names --no-tablespaces --skip-triggers $i -r /root/$i-exist.sql
-    echo "- Dropping $i"
-    mysql -e "DROP DATABASE $i;"
-    echo "- Creating schema for $i"
-    mysql < /root/$i-schema.sql
-    echo "- Importing data into $i"
-    mysql < /root/$i-exist.sql
-done
+echo === Updating vmail database schema ===
+echo Applying https://bitbucket.org/zhb/iredmail/raw/default/extra/update/0.9.8/iredmail.mysql
+wget -O - -nv https://bitbucket.org/zhb/iredmail/raw/default/extra/update/0.9.8/iredmail.mysql | mysql -f vmail
+echo
 
-#echo === Updating vmail database schema ===
-#echo Applying https://bitbucket.org/zhb/iredmail/raw/default/extra/update/0.9.8/iredmail.mysql
-#wget -O - -nv https://bitbucket.org/zhb/iredmail/raw/default/extra/update/0.9.8/iredmail.mysql | mysql -f vmail
-#echo
+echo === Updating amavisd database schema ===
+echo Applying https://bitbucket.org/zhb/iredmail/raw/default/extra/update/0.9.8/amavisd.mysql
+wget -O - -nv https://bitbucket.org/zhb/iredmail/raw/default/extra/update/0.9.8/amavisd.mysql | mysql -f amavisd
+echo
 
-#echo === Updating amavisd database schema ===
-#echo Applying https://bitbucket.org/zhb/iredmail/raw/default/extra/update/0.9.8/amavisd.mysql
-#wget -O - -nv https://bitbucket.org/zhb/iredmail/raw/default/extra/update/0.9.8/amavisd.mysql | mysql -f amavisd
-#echo
+echo === Updating sogo database schema ===
+echo Executing /usr/share/doc/sogo/sql-update-3.2.10_to_4.0.0-mysql.sh
+. /opt/iredmail/.cv
+{ echo "sogo"; echo "${MYSQL_HOST}"; echo "sogo"; } | bash -c $(sed "s/mysql \-p/mysql -p${SOGO_DB_PASSWD}/g" /usr/share/doc/sogo/sql-update-3.2.10_to_4.0.0-mysql.sh)
+echo
 
-#echo === Updating sogo database schema ===
-#echo Executing /usr/share/doc/sogo/sql-update-3.2.10_to_4.0.0-mysql.sh
-#. /opt/iredmail/.cv
-#{ echo "sogo"; echo "${MYSQL_HOST}"; echo "sogo"; } | bash -c $(sed "s/mysql \-p/mysql -p${SOGO_DB_PASSWD}/g" /usr/share/doc/sogo/sql-update-3.2.10_to_4.0.0-mysql.sh)
-#echo
+echo === Updating roundcube database schema and checking settings ===
+echo Executing /opt/www/roundcubemail/bin/update.sh
+{ echo "y"; } | /opt/www/roundcubemail/bin/update.sh
+echo
 
-#echo === Updating roundcube database schema and checking settings ===
-#echo Executing /opt/www/roundcubemail/bin/update.sh
-#{ echo "y"; } | /opt/www/roundcubemail/bin/update.sh
-#echo
+echo === Updating the iRedAPD database schema ===
+echo "Executing /opt/iredapd/tools/upgrade_iredapd.sh (patched)"
+cd /opt/iredapd/tools
+F=upgrade_iredapd.sh
+X="$(sed '/^# Copy config file/,$d' $F) $(sed '1,/^# Require SQL root password/d' $F | sed '/^# Check dependent packages/,$d')"
+bash -c "$X"
+echo
 
-#echo === Updating the iRedAPD database schema ===
-#echo "Executing /opt/iredapd/tools/upgrade_iredapd.sh (patched)"
-#cd /opt/iredapd/tools
-#F=upgrade_iredapd.sh
-#X="$(sed '/^# Copy config file/,$d' $F) $(sed '1,/^# Require SQL root password/d' $F | sed '/^# Check dependent packages/,$d')"
-#bash -c "$X"
-#echo
-
-#echo === Updating the iRedAdmin database schema ===
-#cd /opt/www/iRedAdmin-0.9/tools
-#F=upgrade_iredadmin.sh
-#X="$(sed '/^# Copy config file/,$d' $F) $(sed '1,/^# Add new SQL tables/d' $F | sed '/^# Cron job\./,$d')"
-#bash -c "$X"
-#echo
+echo === Updating the iRedAdmin database schema ===
+cd /opt/www/iRedAdmin-0.9/tools
+F=upgrade_iredadmin.sh
+X="$(sed '/^# Copy config file/,$d' $F) $(sed '1,/^# Add new SQL tables/d' $F | sed '/^# Cron job\./,$d')"
+bash -c "$X"
+echo
