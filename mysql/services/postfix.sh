@@ -72,37 +72,8 @@ if [ ! -z ${MYSQL_HOST} ]; then
     done
 fi
 . /opt/iredmail/.cv
-sed -i "s/TEMP_VMAIL_DB_BIND_PASSWD/$VMAIL_DB_BIND_PASSWD/" /etc/postfix/mysql/catchall_maps.cf \
-    /etc/postfix/mysql/domain_alias_maps.cf \
-    /etc/postfix/mysql/recipient_bcc_maps_domain.cf \
-    /etc/postfix/mysql/recipient_bcc_maps_user.cf \
-    /etc/postfix/mysql/relay_domains.cf \
-    /etc/postfix/mysql/sender_bcc_maps_domain.cf \
-    /etc/postfix/mysql/sender_bcc_maps_user.cf \
-    /etc/postfix/mysql/sender_dependent_relayhost_maps.cf \
-    /etc/postfix/mysql/sender_login_maps.cf \
-    /etc/postfix/mysql/transport_maps_domain.cf \
-    /etc/postfix/mysql/transport_maps_user.cf \
-    /etc/postfix/mysql/virtual_alias_maps.cf \
-    /etc/postfix/mysql/virtual_mailbox_domains.cf \
-    /etc/postfix/mysql/virtual_mailbox_maps.cf \
-    /etc/postfix/mysql/domain_alias_catchall_maps.cf
-
-postmap /etc/postfix/mysql/catchall_maps.cf \
-    /etc/postfix/mysql/domain_alias_maps.cf \
-    /etc/postfix/mysql/recipient_bcc_maps_domain.cf \
-    /etc/postfix/mysql/recipient_bcc_maps_user.cf \
-    /etc/postfix/mysql/relay_domains.cf \
-    /etc/postfix/mysql/sender_bcc_maps_domain.cf \
-    /etc/postfix/mysql/sender_bcc_maps_user.cf \
-    /etc/postfix/mysql/sender_dependent_relayhost_maps.cf \
-    /etc/postfix/mysql/sender_login_maps.cf \
-    /etc/postfix/mysql/transport_maps_domain.cf \
-    /etc/postfix/mysql/transport_maps_user.cf \
-    /etc/postfix/mysql/virtual_alias_maps.cf \
-    /etc/postfix/mysql/virtual_mailbox_domains.cf \
-    /etc/postfix/mysql/virtual_mailbox_maps.cf \
-    /etc/postfix/mysql/domain_alias_catchall_maps.cf
+sed -i "s/TEMP_VMAIL_DB_BIND_PASSWD/$VMAIL_DB_BIND_PASSWD/" /etc/postfix/mysql/*.cf
+postmap /etc/postfix/mysql/*.cf
 
 trap "trap_hup_signal" HUP
 trap "trap_term_signal" TERM
