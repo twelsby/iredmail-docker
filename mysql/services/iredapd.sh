@@ -1,4 +1,5 @@
 #!/bin/sh
+logger -p local3.info -t iredapd "Preparing to start iredapd"
 
 # Configurations
 PROG='iredapd'
@@ -7,8 +8,8 @@ PIDFILE='/var/run/iredapd.pid'
 
 # Configure plugins
 if [ ! -z "${IREDAPD_PLUGINS}" ]; then
-  echo "*** Configuring iredapd";
-  sed -i "/^plugins /c plugins = $IREDAPD_PLUGINS" /opt/iredapd/settings.py;
+    logger -p local3.info -t iredapd "Configuring iredapd"
+    sed -i "/^plugins /c plugins = $IREDAPD_PLUGINS" /opt/iredapd/settings.py;
 fi
 
 check_status() {
@@ -23,23 +24,26 @@ check_status() {
 }
 
 ### Wait until postfix is started
+logger -p local3.info -t iredapd "Waiting for postfix"
 while [ ! -f /var/tmp/postfix.run ]; do
-  sleep 1
+    sleep 1
 done
 
 if [ ! -z ${MYSQL_HOST} ]; then
+    logger -p local3.info -t iredapd "Setting MySQL host to ${MYSQL_HOST}"
     sed -i "/^vmail_db_server[ \t]*=.*/s/=.*/= \"${MYSQL_HOST}\"/" /opt/iredapd/settings.py
     sed -i "/^amavisd_db_server[ \t]*=.*/s/=.*/= \"${MYSQL_HOST}\"/" /opt/iredapd/settings.py
     sed -i "/^iredapd_db_server[ \t]*=.*/s/=.*/= \"${MYSQL_HOST}\"/" /opt/iredapd/settings.py
 fi
 
 # Update MySQL password
+logger -p local3.info -t iredapd "Setting MySQL service passwords"
 . /opt/iredmail/.cv
 sed -i "s/TEMP_IREDAPD_DB_PASSWD/$IREDAPD_DB_PASSWD/" /opt/iredapd/settings.py
 sed -i "s/TEMP_VMAIL_DB_BIND_PASSWD/$VMAIL_DB_BIND_PASSWD/" /opt/iredapd/settings.py
 
 trap_term_signal() {
-    echo "Stopping (from SIGTERM)"
+    logger -p local3.info -t iredapd "Stopping (from SIGTERM)"
     kill -15 $pid
     while cat /proc/"$pid"/status | grep State: | grep -q zombie; test $? -gt 0
     do
@@ -50,23 +54,22 @@ trap_term_signal() {
 
 trap "trap_term_signal" TERM
 
-
 if [ -f ${PIDFILE} ]; then
-  PID="$(cat ${PIDFILE})"
-  s="$(check_status ${PID})"
+    PID="$(cat ${PIDFILE})"
+    s="$(check_status ${PID})"
 
-  if [ X"$s" = X"running" ]; then
-    echo "${PROG} is already running."
-    kill -15 $PID
-    rm -f ${PIDFILE} >/dev/null 2>&1
-  else
-    rm -f ${PIDFILE} >/dev/null 2>&1
-  fi
+    if [ X"$s" = X"running" ]; then
+        logger -p local3.info -t iredapd "${PROG} is already running."
+        kill -15 $PID
+        rm -f ${PIDFILE} >/dev/null 2>&1
+    else
+        rm -f ${PIDFILE} >/dev/null 2>&1
+    fi
 fi
 
 # Start iredapd
+logger -p local3.info -t iredapd "Starting iredapd"
 python ${BINPATH}
-
 
 while [ ! -f /var/run/iredapd.pid ]
 do

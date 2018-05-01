@@ -17,7 +17,7 @@ RUN echo "APT::Install-Recommends 0;" >> /etc/apt/apt.conf.d/01-no-recommends \
     && apt-get install -y -q \
        wget \
        bzip2 \
-       iptables \
+       iproute2 \
        openssl \
        mysql-server \
        netcat \
@@ -68,16 +68,13 @@ RUN sed -i "s/^exit 101$/exit 0/" /usr/sbin/policy-rc.d \
     && install -o amavis -g amavis -m 640 -T /usr/share/spamassassin/user_prefs.template /var/lib/amavis/.spamassassin/user_prefs \
     && rm -f /etc/ssl/private/iRedMail.key \
     && rm -f /etc/ssl/certs/iRedMail.crt \
-    && rm -f /var/lib/dkim/DOMAIN.pem
+    && rm -f /var/lib/dkim/DOMAIN.pem \
+    && sed "/\/usr\/sbin\/syslog-ng/i sed -i \"s#DOCKER_HOST#$(/sbin/ip route|awk '/default/ { print $3 }')#\" /etc/syslog-ng/syslog-ng.conf" /etc/my_init.d/10_syslog-ng.init
 
 # Prepare for the first run
 RUN rm -rf /var/lib/mysql/* && tar jxf /root/mysql.tar.bz2 -C / && rm -f /root/mysql.tar.bz2 \
     && tar jcf /root/vmail.tar.bz2 -C / var/vmail && rm -rf /var/vmail \
     && rm -rf /var/lib/clamav/*
-
-# Install Adminer
-RUN wget https://www.adminer.org/static/download/${ADMINER_VERSION}/adminer-${ADMINER_VERSION}.php -O /opt/www/roundcubemail/adminer.php
-ADD update.sh /sbin/update-iredmail
 
 
 ### Startup services
@@ -97,7 +94,6 @@ ADD services/php7-fpm.sh /etc/service/php7-fpm/run
 ADD services/nginx.sh /etc/service/httpd/run
 
 # Enhancement
-ADD services/fail2ban.sh /etc/service/fail2ban/run
 ADD services/clamav-daemon.sh /etc/service/clamav-daemon/run
 ADD services/clamav-freshclam.sh /etc/service/clamav-freshclam/run
 

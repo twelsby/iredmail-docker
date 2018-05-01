@@ -1,4 +1,5 @@
 #!/bin/sh
+logger -p local3.info -t mysql "Preparing to start mysql"
 
 # Store root account credentials
 export HOME="/root"
@@ -7,11 +8,12 @@ echo "[client]\nhost=localhost\nuser=root" > /root/.my.cnf
 
 
 # Start local daemon
+logger -p local3.info -t mysql "Starting local daemon"
 exec /sbin/setuser mysql /usr/sbin/mysqld &
 
 
 # Wait for local SQL daemons
-echo "Waiting for local MySQL to come up"
+logger -p local3.info -t mysql "Waiting for local daemon to come up"
 while ! mysqladmin ping --silent; do sleep 1; done
 
 
@@ -24,10 +26,11 @@ if [ ! -z ${MYSQL_HOST} ] && [ "$MYSQL_HOST" != "localhost" ] && [ "$MYSQL_HOST"
     # Update credentials
     echo "[client]\nhost=$MYSQL_HOST\nuser=root\npassword=\"${MYSQL_ROOT_PASSWORD}\"\n" > /root/.my.cnf
 
-    echo "Waiting for remote MySQL to come up"
+    logger -p local3.info -t mysql "Waiting for remote MySQL to come up"
     while ! mysqladmin ping --silent; do sleep 1; done
 else
     # Update root password
+    logger -p local3.info -t mysql "Update root mysql password"
     if [ ! -z ${MYSQL_ROOT_PASSWORD} ]; then
         if [ "${MYSQL_ROOT_PASSWORD}" != "$CP" ]; then
             mysql -s -s -e "SELECT CONCAT(\"DROP USER \",\"'\",user,\"'@'\",host,\"';\") FROM mysql.user WHERE user LIKE 'root'" > /root/root.sql 2>&1 || true
@@ -42,11 +45,12 @@ else
 fi
 
 
-echo "*** Configuring MySQL database"
+logger -p local3.info -t mysql "Configuring MySQL database"
 
 
 # Update default email accounts
 DOMAIN=$(hostname -d)
+logger -p local3.info -t mysql "Setting domain to ${DOMAIN}"
 sed -i "s/DOMAIN/${DOMAIN}/g" /root/vmail.sql
 
 
@@ -55,7 +59,7 @@ for i in vmail amavisd iredadmin iredapd roundcubemail sogo; do
     result=$(mysql -e "SELECT SCHEMA_NAME FROM INFORMATION_SCHEMA.SCHEMATA WHERE SCHEMA_NAME = '$i'")
     if [ -z "${result}" ]
     then
-        echo Creating database $i
+        logger -p local3.info -t mysql "Creating database $i"
         mysql < /root/$i.sql
     fi
 done
@@ -63,11 +67,13 @@ done
 
 # Update default email accounts
 if [ ! -z ${POSTMASTER_PASSWORD} ]; then
+    logger -p local3.info -t mysql "Setting postmaster@${DOMAIN} password"
     mysql -e "UPDATE vmail.mailbox SET password='${POSTMASTER_PASSWORD}' WHERE username='postmaster@${DOMAIN}';"
 fi
 
 
 # Add service users to database
+logger -p local3.info -t mysql "Adding service users"
 X=;OR=;for i in vmail vmailadmin amavisd iredadmin roundcube sogo iredapd; do X="$X $OR user LIKE "\'$i\'; OR="OR"; done
 mysql -s -s -e "SELECT CONCAT(\"DROP USER \",\"'\",user,\"'@'\",host,\"';\") FROM mysql.user WHERE $X" | mysql
 mysql < /root/user.sql
@@ -75,6 +81,7 @@ mysql < /root/user.sql
 
 # Rename service user accounts
 if [ ! -z ${MYSQL_HOST} ] && [ "$MYSQL_HOST" != "localhost" ] && [ "$MYSQL_HOST" != "127.0.0.1" ]; then
+    logger -p local3.info -t mysql "Setting MySQL host to ${MYSQL_HOST}"
     CONTAINER=$(hostname -i)
     for u in vmail vmailadmin amavisd iredadmin roundcube sogo iredapd; do
         mysql -e "RENAME USER '$u'@'localhost' TO '$u'@'$CONTAINER';"
@@ -85,6 +92,7 @@ fi
 
 
 # Update passwords for service accounts
+logger -p local3.info -t mysql "Updating MySQL service passwords"
 . /opt/iredmail/.cv
 tmp=$(tempfile)
 echo "SET PASSWORD FOR 'vmail'@'$CONTAINER' = PASSWORD('$VMAIL_DB_BIND_PASSWD');" >> $tmp
@@ -98,7 +106,7 @@ mysql < $tmp
 rm $tmp
 
 # Restart mysql to transfer context
-echo "*** Starting MySQL database"
+logger -p local3.info -t mysql "Restarting local daemon"
 killall -s TERM mysqld
 touch /var/tmp/mysql.run
 exec /sbin/setuser mysql /usr/sbin/mysqld

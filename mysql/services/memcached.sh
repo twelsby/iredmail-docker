@@ -1,3 +1,3 @@
 #!/bin/bash
-echo "*** Starting Memcached.."
+logger -p local3.info -t memcached "Starting Memcached"
 exec memcached -u root
