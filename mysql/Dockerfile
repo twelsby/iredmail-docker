@@ -69,7 +69,7 @@ RUN sed -i "s/^exit 101$/exit 0/" /usr/sbin/policy-rc.d \
     && rm -f /etc/ssl/private/iRedMail.key \
     && rm -f /etc/ssl/certs/iRedMail.crt \
     && rm -f /var/lib/dkim/DOMAIN.pem \
-    && sed "/\/usr\/sbin\/syslog-ng/i sed -i \"s#DOCKER_HOST#$(/sbin/ip route|awk '/default/ { print $3 }')#\" /etc/syslog-ng/syslog-ng.conf" /etc/my_init.d/10_syslog-ng.init \
+    && sed -i "/\/usr\/sbin\/syslog-ng/i sed -i \"s#DOCKER_HOST#$(/sbin/ip route|awk '/default/ { print $3 }')#\" /etc/syslog-ng/syslog-ng.conf" /etc/my_init.d/10_syslog-ng.init \
     && sed -i "s/log_error/#log_error/" /etc/mysql/mysql.conf.d/mysqld.cnf \
     && sed -i "s/^LogSyslog.*/LogSyslog true/" /etc/clamav/clamd.conf /etc/clamav/freshclam.conf \
     && sed -i "s/^LogFile/#LogFile/" /etc/clamav/clamd.conf \
