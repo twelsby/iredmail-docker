@@ -82,7 +82,7 @@ RUN sed -i "s/^exit 101$/exit 0/" /usr/sbin/policy-rc.d \
 RUN rm -rf /var/lib/mysql/* && tar jxf /root/mysql.tar.bz2 -C / && rm -f /root/mysql.tar.bz2 \
     && tar jcf /root/vmail.tar.bz2 -C / var/vmail && rm -rf /var/vmail \
     && rm -rf /var/lib/clamav/*
-
+ADD syslog-ng.conf /etc/syslog-ng/syslog-ng.conf
 
 ### Startup services
 # Core Services
