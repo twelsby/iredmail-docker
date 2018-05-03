@@ -9,7 +9,7 @@ echo "[client]\nhost=localhost\nuser=root" > /root/.my.cnf
 
 # Start local daemon
 logger -p local3.info -t mysql "Starting local daemon"
-exec /sbin/setuser mysql /usr/sbin/mysqld --syslog &
+exec /sbin/setuser mysql /usr/sbin/mysqld --log_syslog &
 
 
 # Wait for local SQL daemons
@@ -109,4 +109,4 @@ rm $tmp
 logger -p local3.info -t mysql "Restarting local daemon"
 killall -s TERM mysqld
 touch /var/tmp/mysql.run
-exec /sbin/setuser mysql /usr/sbin/mysqld --syslog
+exec /sbin/setuser mysql /usr/sbin/mysqld --log_syslog
