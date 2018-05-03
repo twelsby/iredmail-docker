@@ -1,9 +1,6 @@
 #!/bin/sh
 logger -p local3.info -t php7-fpm "Preparing to start php7-fpm"
 
-# Send logs to syslog
-sed -i "s/error_log.*/error_log = syslog/" /etc/php/7.0/fpm/php-fpm.conf
-
 # Wait until Dovecot is started
 logger -p local3.info -t php7-fpm "Waiting for dovecot"
 while ! nc -z localhost 993; do

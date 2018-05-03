@@ -69,7 +69,14 @@ RUN sed -i "s/^exit 101$/exit 0/" /usr/sbin/policy-rc.d \
     && rm -f /etc/ssl/private/iRedMail.key \
     && rm -f /etc/ssl/certs/iRedMail.crt \
     && rm -f /var/lib/dkim/DOMAIN.pem \
-    && sed "/\/usr\/sbin\/syslog-ng/i sed -i \"s#DOCKER_HOST#$(/sbin/ip route|awk '/default/ { print $3 }')#\" /etc/syslog-ng/syslog-ng.conf" /etc/my_init.d/10_syslog-ng.init
+    && sed "/\/usr\/sbin\/syslog-ng/i sed -i \"s#DOCKER_HOST#$(/sbin/ip route|awk '/default/ { print $3 }')#\" /etc/syslog-ng/syslog-ng.conf" /etc/my_init.d/10_syslog-ng.init \
+    && sed -i "s/log_error/#log_error/" /etc/mysql/mysql.conf.d/mysqld.cnf \
+    && sed -i "s/^LogSyslog.*/LogSyslog true/" /etc/clamav/clamd.conf /etc/clamav/freshclam.conf \
+    && sed -i "s/^LogFile/#LogFile/" /etc/clamav/clamd.conf \
+    && sed -i "s/^UpdateLogFile/#UpdateLogFile/" /etc/clamav/freshclam.conf \
+    && sed -i "s/error_log.*/error_log syslog:server=localhost;/" /etc/nginx/conf-available/log.conf \
+    && sed -i "s/access_log.*/error_log syslog:server=localhost;/" /etc/nginx/conf-available/log.conf \
+    && sed -i "s/error_log.*/error_log = syslog/" /etc/php/7.0/fpm/php-fpm.conf
 
 # Prepare for the first run
 RUN rm -rf /var/lib/mysql/* && tar jxf /root/mysql.tar.bz2 -C / && rm -f /root/mysql.tar.bz2 \

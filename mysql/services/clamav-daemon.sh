@@ -1,10 +1,6 @@
 #!/bin/sh
 logger -p local3.info -t clamavd "Preparing to start clamavd"
 
-# Send logs to syslog
-sed -i "s/^LogSyslog.*/LogSyslog true/" /etc/clamav/clamd.conf
-sed -i "s/^LogFile/#LogFile/" /etc/clamav/clamd.conf
-
 if [ ! -e /var/lib/clamav/main.cvd ]; then
    logger -p local3.info -t clamavd "Downloading databases"
    wget -P /var/lib/clamav -nv http://database.clamav.net/main.cvd

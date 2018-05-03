@@ -1,9 +1,6 @@
 #!/bin/sh
 logger -p local3.info -t mysql "Preparing to start mysql"
 
-# Log to syslog
-sed -i "s/log_error/#log_error/" /etc/mysql/mysql.conf.d/mysqld.cnf
-
 # Store root account credentials
 export HOME="/root"
 export USER="root"
