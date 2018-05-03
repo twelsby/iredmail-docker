@@ -75,7 +75,7 @@ RUN sed -i "s/^exit 101$/exit 0/" /usr/sbin/policy-rc.d \
     && sed -i "s/^LogFile/#LogFile/" /etc/clamav/clamd.conf \
     && sed -i "s/^UpdateLogFile/#UpdateLogFile/" /etc/clamav/freshclam.conf \
     && sed -i "s/error_log.*/error_log syslog:server=localhost;/" /etc/nginx/conf-available/log.conf \
-    && sed -i "s/access_log.*/error_log syslog:server=localhost;/" /etc/nginx/conf-available/log.conf \
+    && sed -i "s/access_log.*/access_log syslog:server=localhost;/" /etc/nginx/conf-available/log.conf \
     && sed -i "s/error_log.*/error_log = syslog/" /etc/php/7.0/fpm/php-fpm.conf
 
 # Prepare for the first run
