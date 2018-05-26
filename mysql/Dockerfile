@@ -63,7 +63,7 @@ RUN sed -i "s/^exit 101$/exit 0/" /usr/sbin/policy-rc.d \
     && sed -i '/init.d/c pkill -sighup clamd' /etc/logrotate.d/clamav-daemon \
     && sed -i '/^Foreground /c Foreground true' /etc/clamav/freshclam.conf \
     && sed -i 's/^bind-address/#bind-address/' /etc/mysql/mysql.conf.d/mysqld.cnf \
-    && sed -i 's/SHOWWARNING[ \t]*=.*/SHOWWARNING=false/g' /etc/tmpreaper.conf \
+#    && sed -i 's/SHOWWARNING[ \t]*=.*/SHOWWARNING=false/g' /etc/tmpreaper.conf \
     && install -o amavis -g amavis -m 750 -d /var/lib/amavis/.spamassassin \
     && install -o amavis -g amavis -m 640 -T /usr/share/spamassassin/user_prefs.template /var/lib/amavis/.spamassassin/user_prefs \
     && rm -f /etc/ssl/private/iRedMail.key \
@@ -106,7 +106,7 @@ ADD services/clamav-freshclam.sh /etc/service/clamav-freshclam/run
 
 
 ### Purge some packets and save disk space
-RUN apt-get purge -y -q dialog apt-utils augeas-tools logwatch logrotate \
+RUN apt-get purge -y -q dialog apt-utils augeas-tools logwatch \
     && apt-get autoremove -y -q \
     && apt-get clean -y -q \
     && rm -rf /var/lib/apt/lists/*
