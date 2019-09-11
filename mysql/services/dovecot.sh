@@ -9,7 +9,8 @@ done
 
 DOMAIN=$(hostname -d)
 logger -p local3.info -t dovecot "Setting domain to ${DOMAIN}"
-sed -i "s/DOMAIN/${DOMAIN}/g" /etc/dovecot/dovecot.conf
+CONTENT=$(sed "s/DOMAIN/${DOMAIN}/g" /etc/dovecot/dovecot.conf)
+echo "$CONTENT" > /etc/dovecot/dovecot.conf
 
 if [ ! -z ${MYSQL_HOST} ]; then
     logger -p local3.info -t dovecot "Setting MySQL host to ${MYSQL_HOST}"

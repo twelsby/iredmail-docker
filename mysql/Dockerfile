@@ -11,10 +11,10 @@ ENV DEBIAN_FRONTEND noninteractive
 RUN echo "APT::Install-Recommends 0;" >> /etc/apt/apt.conf.d/01-no-recommends \
     && echo "APT::Install-Suggests 0;" >> /etc/apt/apt.conf.d/01-no-recommends \
     && apt-get -q update \
-    && apt-get upgrade -y \
-    && apt-get install -y -q \
+    && apt-get upgrade -y -q --option=Dpkg::Options::=--force-confdef --option=Dpkg::Options::=--force-confnew \
+    && apt-get install -y -q --option=Dpkg::Options::=--force-confdef --option=Dpkg::Options::=--force-confnew \
        apt-utils \
-    && apt-get install -y -q \
+    && apt-get install -y -q --option=Dpkg::Options::=--force-confdef --option=Dpkg::Options::=--force-confnew \
        wget \
        bzip2 \
        iproute2 \
