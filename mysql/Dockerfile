@@ -18,9 +18,9 @@ RUN echo "APT::Install-Recommends 0;" >> /etc/apt/apt.conf.d/01-no-recommends \
     && echo $TIMEZONE > /etc/timezone \
     && apt-get -q update \
     && apt-get upgrade -y \
-    && apt-get install -y -q \
+    && apt-get install -y -q -o Dpkg::Options::=--force-confnew \
        apt-utils \
-    && apt-get install -y -q \
+    && apt-get install -y -q -o Dpkg::Options::=--force-confnew \
        wget \
        bzip2 \
        iptables \
